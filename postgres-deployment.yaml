@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: marine-farming
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: marine-farming
+  labels:
+    app.kubernetes.io/name: postgres
+data:
+  POSTGRES_PASSWORD: {{DB_PASSWORD}}
+  POSTGRES_USER: {{DB_USERNAME}}
+  POSTGRES_DB: {{DB_DATABASE}}
+  POSTGRES_HOST: postgres
+  PGDATA: /var/lib/postgresql/data/mf-api/
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  namespace: marine-farming
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: marine-farming-api
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: marine-farming
+    app.kubernetes.io/managed-by: docker
+    environment: staging
+    tier: pvc
+    partition: marine-farming
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: marine-farming
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: marine-farming-api
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: marine-farming
+    app.kubernetes.io/managed-by: docker
+    environment: staging
+    tier: database
+    partition: marine-farming
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+    spec:
+      containers:
+        - image: postgres:12.3
+          name: postgres
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: marine-farming
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: marine-farming-api
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: marine-farming
+    app.kubernetes.io/managed-by: docker
+    environment: staging
+    tier: database
+    partition: marine-farming
+spec:
+  ports:
+    - name: "5432"
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: postgres

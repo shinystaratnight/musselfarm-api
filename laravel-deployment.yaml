@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: marine-farming
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+  namespace: marine-farming
+data:
+  .dockerconfigjson: {{dockerconfigjson}}
+type: kubernetes.io/dockerconfigjson
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: laravel-pv-claim
+  namespace: marine-farming
+  labels:
+    app.kubernetes.io/name: laravel
+    app.kubernetes.io/instance: marine-farming-api
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/component: laravel
+    app.kubernetes.io/part-of: marine-farming
+    app.kubernetes.io/managed-by: docker
+    environment: staging
+    tier: pvc
+    partition: marine-farming
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: laravel
+    app.kubernetes.io/instance: marine-farming-api
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/component: laravel
+    app.kubernetes.io/part-of: marine-farming
+    app.kubernetes.io/managed-by: docker
+    environment: staging
+    tier: backend
+    partition: marine-farming
+  name: laravel
+  namespace: marine-farming
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: laravel
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: laravel
+    spec:
+      containers:
+        - name: laravel
+          image: {{image}}
+          imagePullPolicy: "Always"
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: laravel-persistent-storage
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "cp -r /var/www/marine-farming-api/. /var/www/html && chown -R www-data:www-data /var/www/html && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap && php artisan migrate:fresh --seed --no-interaction && php artisan passport:install --force && php artisan passport:keys --force && php artisan passport:client --password --no-interaction && php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan storage:link && php artisan config:cache && php artisan route:cache"]
+        - name: nginx
+          image: {{nginx_image}}
+          imagePullPolicy: "Always"
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: laravel-persistent-storage
+              mountPath: /var/www/html
+      volumes:
+        - name: laravel-persistent-storage
+          emptyDir: {}
+      imagePullSecrets:
+        - name: regcred
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: laravel
+    app.kubernetes.io/instance: marine-farming-api
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/component: laravel
+    app.kubernetes.io/part-of: marine-farming
+    app.kubernetes.io/managed-by: docker
+    environment: staging
+    tier: frontend
+    partition: marine-farming
+  name: laravel
+  namespace: marine-farming
+spec:
+  ports:
+    - name: "80"
+      port: 80
+      targetPort: 80
+  selector:
+    app.kubernetes.io/name: laravel
+
+---
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: marine-farming-api-ingress
+  namespace: marine-farming
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 16m
+    cert-manager.io/cluster-issuer: letsencrypt-production
+#    nginx.ingress.kubernetes.io/enable-cors: "true"
+  labels:
+    environment: staging
+    tier: ingress
+    partition: marine-farming
+spec:
+  tls:
+    - hosts:
+        - {{host}}
+      secretName: marine-farming-api-tls
+  rules:
+    - host: {{host}}
+      http:
+        paths:
+          - backend:
+              serviceName: laravel
+              servicePort: 80
