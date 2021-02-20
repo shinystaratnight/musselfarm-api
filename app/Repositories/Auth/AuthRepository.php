@@ -198,7 +198,8 @@ class AuthRepository implements AuthRepositoryInterface
                 'form_params' => [
                     'grant_type' => 'password',
                     'client_id' => $oClient->id,
-                    'client_secret' => $oClient->secret,
+                    // 'client_secret' => $oClient->secret,
+                    'client_secret' => '1WaRtPmD7dN8Pujxz7sYSHa9dIBPTipqgymfJElD',
                     'username' => $email,
                     'password' => $password,
                     'scope' => '',
@@ -242,7 +243,8 @@ class AuthRepository implements AuthRepositoryInterface
                     'grant_type' => 'refresh_token',
                     'refresh_token' => $refresh_token,
                     'client_id' => $oClient->id,
-                    'client_secret' => $oClient->secret,
+                    // 'client_secret' => $oClient->secret,
+                    'client_secret' => '1WaRtPmD7dN8Pujxz7sYSHa9dIBPTipqgymfJElD',
                     'scope' => '',
                 ],
             ]);

@@ -7,6 +7,10 @@ use LVR\CreditCard\CardNumber;
 use LVR\CreditCard\CardExpirationYear;
 use LVR\CreditCard\CardExpirationMonth;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class SubscriptionRequest extends FormRequest
 {
@@ -32,7 +36,19 @@ class SubscriptionRequest extends FormRequest
             'expiration_year' => ['required', new CardExpirationYear($this->get('expiration_month'))],
             'expiration_month' => ['required', new CardExpirationMonth($this->get('expiration_year'))],
             'cvc' => ['required', new CardCvc($this->get('card_number'))],
-            'plan_id' => 'required|string|exists:plans,id'
+            'plan_id' => 'required|string|exists:plans,id',
+            'quantity' => 'required|numeric|between:1,9999999',
+            'trial' => 'required|numeric|between:0,1'
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        $errors = (new ValidationException($validator))->errors();
+
+        throw new HttpResponseException(
+            response()->json(['status' => 'Error',
+                'message' => array_shift($errors)], JsonResponse::HTTP_UNPROCESSABLE_ENTITY)
+        );
     }
 }

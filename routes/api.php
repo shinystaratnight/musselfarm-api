@@ -91,10 +91,10 @@ Route::group(['middleware' => 'auth:api'], function ()
     // Subscription routes
     Route::group(['prefix' => 'subscription'], function() {
         Route::get('index', [SubscriptionController::class, 'index']);
+        Route::get('get-subscription-status', [SubscriptionController::class, 'getSubscriptionStatus']);
         Route::post('subscription', [SubscriptionController::class, 'getSubscription']);
         Route::post('cancel', [SubscriptionController::class, 'cancelSubscription']);
         Route::post('resume', [SubscriptionController::class, 'getResume']);
-
         // Invoices download route
         Route::get('invoices/download/{paymentId}', [InvoiceController::class, 'downloadInvoice']);
 
@@ -156,7 +156,7 @@ Route::group(['middleware' => 'auth:api'], function ()
 });
 
 // Stripe webhook routes
-Route::stripeWebhooks('stripe-webhook');
+Route::stripeWebhooks('stripe-webhook'); 
 Route::post('refresh', [AuthController::class, 'refresh']);
 Route::get('apply-email', [ChangeUserEmailController::class, 'apply'])->name('apply');
 

@@ -44,6 +44,10 @@ class SubscriptionController extends Controller
         return $data;
     }
 
+    public function getSubscriptionStatus() // get current user's subscription status
+    {
+        return $this->subRepo->getSubscriptionStatus();
+    }
 
     public function getSubscription(SubscriptionRequest $request) // subscribing user to some plan
     {
