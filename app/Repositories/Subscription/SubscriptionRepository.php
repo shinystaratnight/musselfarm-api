@@ -17,34 +17,47 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
 
         if ($user->subscribed('Basic Plan')) // has active subscription (includes trial)
         {
-            $activeSubscription = $user->subscriptions()->active()->get();
-            $history = $user->findInvoice('in_1IMp0CESRjzASDpuU34OSXi1');
-            var_dump($user->invoices()[0]->total());
-            var_dump($user->invoices()[0]->date()->toFormattedDateString());
-            exit;
-            $paymentMethod = $user->defaultPaymentMethod();
+            $activeSubscription = $user->subscription('Basic Plan')->asStripeSubscription();
+            $planData = [
+                'expire_at' => date("F j, Y", $activeSubscription->current_period_end),
+                'quantity' => $activeSubscription->quantity,
+            ];
+            $invoices = $user->invoices();
+            $history = [];
+            foreach ($invoices as $invoice) {
+                $invoiceData = [
+                    'total' => $invoice->total(),
+                    'date' => $invoice->date()->toFormattedDateString(),
+                    'id' => $invoice->id,
+                ];
+                $history[] = $invoiceData;
+            }
+            $paymentMethod = $user->defaultPaymentMethod()->asStripePaymentMethod();
+            $cardDetails = [
+                'brand' => $paymentMethod['card']['brand'],
+                'month' => $paymentMethod['card']['exp_month'],
+                'year' => $paymentMethod['card']['exp_year'],
+                'last4' => $paymentMethod['card']['last4'],
+            ];
             if ($user->subscription('Basic Plan')->onTrial()) // trial period
             {
                 return response()->json(['status' => 'trial',
-                    'trial_end' => $user->subscriptions[0]['trial_ends_at']->toDateString(), 
-                    'active_data' => $activeSubscription,
-                    'payment_method' => $paymentMethod,
+                    'plan_data' => $planData,
+                    'payment_method' => $cardDetails,
                     'history' => $history], 200);
             }
             else if ($user->subscription('Basic Plan')->onGracePeriod()) // grace period
             {
                 return response()->json(['status' => 'grace',
-                    'trial_end' => $user->subscriptions[0]['trial_ends_at']->toDateString(),
-                    'active_data' => $activeSubscription,
-                    'payment_method' => $paymentMethod,
+                    'plan_data' => $planData,
+                    'payment_method' => $cardDetails,
                     'history' => $history], 200);
             }
             else // active subscription
             {
                 return response()->json(['status' => 'active',
-                    'trial_end' => '',
-                    'active_data' => $activeSubscription,
-                    'payment_method' => $paymentMethod,
+                    'plan_data' => $planData,
+                    'payment_method' => $cardDetails,
                     'history' => $history], 200);
             }
         }
@@ -54,10 +67,16 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
             { 
                 if($user->subscription('Basic Plan')->cancelled()) { // actived once, but cancelled
                     $history = $user->subscription('Basic Plan')->pastDue();
-                    $paymentMethod = $user->defaultPaymentMethod();
+                    $paymentMethod = $user->defaultPaymentMethod()->asStripePaymentMethod();
+                    $cardDetails = [
+                        'brand' => $paymentMethod['card']['brand'],
+                        'month' => $paymentMethod['card']['exp_month'],
+                        'year' => $paymentMethod['card']['exp_year'],
+                        'last4' => $paymentMethod['card']['last4'],
+                    ];
                     return response()->json(['status' => 'cancelled',
-                        'active_data' => null,
-                        'payment_method' => $paymentMethod,
+                        'plan_data' => null,
+                        'payment_method' => $cardDetails,
                         'history' => $history], 200);
                 }
             }
@@ -65,7 +84,7 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
             {
                 return response()->json(['status' => 'not_subscribe',
                     'payment_method' => null,
-                    'active_data' => null,
+                    'plan_data' => null,
                     'history' => null], 200);
             }
         }

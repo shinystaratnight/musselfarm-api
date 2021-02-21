@@ -14,11 +14,11 @@ class CancelSubscriptionRepository implements CancelSubscriptionRepositoryInterf
         {
             $user->subscription($currentPlan->name)->cancel();
 
-            return response()->json(['massage' => 'Subscription to ' . $currentPlan->name . ' canceled'], 200);
+            return response()->json(['status' => '1', 'message' => 'Subscription to ' . $currentPlan->name . ' canceled'], 200);
 
         } else {
 
-            return response()->json(['massage' => 'No current subscription or all subscription were cancel'], 200);
+            return response()->json(['status' => '0', 'message' => 'No current subscription or all subscription were cancel'], 200);
 
         }
     }

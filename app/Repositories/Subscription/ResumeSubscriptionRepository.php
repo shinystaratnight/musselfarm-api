@@ -14,11 +14,11 @@ class ResumeSubscriptionRepository implements ResumeSubscriptionRepositoryInterf
         {
             $user->subscription($currentPlan->name)->resume();
 
-            return response()->json(['message' => 'Resuming cancelled subscription to ' . $currentPlan->name], 200);
+            return response()->json(['status' => '1', 'message' => 'Resuming cancelled subscription to ' . $currentPlan->name], 200);
 
         } else {
 
-            return response()->json(['message' => 'There are no cancelled subscription'], 200);
+            return response()->json(['status' => '0', 'message' => 'There are no cancelled subscription'], 200);
 
         }
     }
