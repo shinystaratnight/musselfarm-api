@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Subscription;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Subscription\SubscriptionRequest;
+use App\Http\Requests\Subscription\CardUpdateRequest;
+use App\Http\Requests\Subscription\TrialUpdateRequest;
 use App\Repositories\Subscription\PlanRepositoryInterface as Plan;
 use App\Repositories\Subscription\ResumeSubscriptionRepositoryInterface as Resume;
 use App\Repositories\Subscription\SubscriptionRepositoryInterface as Subscription;
@@ -54,6 +56,25 @@ class SubscriptionController extends Controller
         $attr = $request->validated();
 
         return $this->subRepo->subscription($attr);
+    }
+
+    public function updateTrial(TrialUpdateRequest $request)
+    {
+        $attr = $request->validated();
+
+        return $this->subRepo->updateTrial($attr);
+    }
+
+    public function updateCard(CardUpdateRequest $request)
+    {
+        $attr = $request->validated();
+
+        return $this->subRepo->updateCard($attr);
+    }
+
+    public function deleteCard()
+    {
+        return $this->subRepo->deleteCard();
     }
 
     public function cancelSubscription() // cancel current subscription

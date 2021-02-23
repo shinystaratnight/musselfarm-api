@@ -2,18 +2,24 @@
 
 namespace App\Repositories\Auth;
 
+use App\Models\Payment;
+use App\Models\Plan;
+use App\Notifications\ChargeSuccessNotification;
+use App\Notifications\NewSubscriptionNotification;
+use Stripe\StripeClient;
 use App\Models\Invite;
 use App\Models\Inviting;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Services\InvoicesService;
 use App\Notifications\SignupActivate;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use App\Traits\ApiResponser;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Traits\ApiResponser;
 use GuzzleHttp\Client;
 use Laravel\Passport\Client as OClient;
 
@@ -27,7 +33,8 @@ class AuthRepository implements AuthRepositoryInterface
         $user = User::create([
             'email' => $attr['email'],
             'password' => Hash::make($attr['password']),
-            'activation_token' => Str::random(60)
+            'activation_token' => Str::random(60),
+            'coupon' => $attr['coupon'],
         ]);
 
         if($user) {
@@ -95,6 +102,12 @@ class AuthRepository implements AuthRepositoryInterface
 
         $user->activation_token = '';
 
+        $trialDays = config('services.stripe.stripe_trial');
+        if ($user->coupon == 'coupon1') $trialDays = 30;
+        else if ($user->coupon == 'coupon2') $trialDays = 60;
+        $user->trial_ends_at = now()->addDays($trialDays);
+
+        $user->quantity = 1;
         $user->save();
 
         return redirect( config('services.api.front_end_url') . '/sign-in/checked');

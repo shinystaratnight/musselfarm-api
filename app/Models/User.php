@@ -23,9 +23,14 @@ class User extends Authenticatable
      */
     protected $cascadeDeletes = ['profile'];
 
-    protected $fillable = ['email', 'password', 'active', 'activation_token'];
+    protected $fillable = ['email', 'password', 'coupon', 'active', 'activation_token', 'quantity'];
 
-    protected $dates = ['deleted_at'];
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'trial_ends_at',
+    ];
 
     /**
      * The attributes that should be hidden for arrays.

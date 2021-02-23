@@ -15,6 +15,20 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
     {
         $user = auth()->user();
 
+        if ($user->onTrial()) {
+            $planData = [
+                'expire_at' => date("F j, Y", strtotime($user->trial_ends_at)),
+                'quantity' => $user->quantity,
+                'coupon_used' => false,
+            ];
+            if ($user->coupon != 'none') {
+                $planData['coupon_used'] = true;
+            }
+            return response()->json(['status' => 'trial',
+                    'plan_data' => $planData,
+                    'payment_method' => null,
+                    'history' => null], 200);
+        }
         if ($user->subscribed('Basic Plan')) // has active subscription (includes trial)
         {
             $activeSubscription = $user->subscription('Basic Plan')->asStripeSubscription();
@@ -32,21 +46,24 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
                 ];
                 $history[] = $invoiceData;
             }
-            $paymentMethod = $user->defaultPaymentMethod()->asStripePaymentMethod();
-            $cardDetails = [
-                'brand' => $paymentMethod['card']['brand'],
-                'month' => $paymentMethod['card']['exp_month'],
-                'year' => $paymentMethod['card']['exp_year'],
-                'last4' => $paymentMethod['card']['last4'],
-            ];
-            if ($user->subscription('Basic Plan')->onTrial()) // trial period
-            {
-                return response()->json(['status' => 'trial',
-                    'plan_data' => $planData,
-                    'payment_method' => $cardDetails,
-                    'history' => $history], 200);
+            $cardDetails = null;
+            if ($user->defaultPaymentMethod()) {
+                $paymentMethod = $user->defaultPaymentMethod()->asStripePaymentMethod();
+                $cardDetails = [
+                    'brand' => $paymentMethod['card']['brand'],
+                    'month' => $paymentMethod['card']['exp_month'],
+                    'year' => $paymentMethod['card']['exp_year'],
+                    'last4' => $paymentMethod['card']['last4'],
+                ];
             }
-            else if ($user->subscription('Basic Plan')->onGracePeriod()) // grace period
+            // if ($user->subscription('Basic Plan')->onTrial()) // trial period
+            // {
+            //     return response()->json(['status' => 'trial',
+            //         'plan_data' => $planData,
+            //         'payment_method' => $cardDetails,
+            //         'history' => $history], 200);
+            // }
+            if ($user->subscription('Basic Plan')->onGracePeriod()) // grace period
             {
                 return response()->json(['status' => 'grace',
                     'plan_data' => $planData,
@@ -122,11 +139,18 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
                     ]
                 ])->attach(['customer' => $user->stripe_id]);
 
-                // Create subscription to chosen plan with created payment method
-                $result = $user->newSubscription($currentPlan->name, $currentPlan->stripe_plan_id)
-                               // ->trialDays($attr['trial'] ? config('services.stripe.stripe_trial') : 0)
-                               ->quantity($attr['quantity'])
-                               ->create($paymentMethod['id']);
+                if ($attr['trial'] == 1) {
+                    // Create subscription to chosen plan with created payment method
+                    $result = $user->newSubscription($currentPlan->name, $currentPlan->stripe_plan_id)
+                                ->trialDays(config('services.stripe.stripe_trial'))
+                                ->quantity($attr['quantity'])
+                                ->create($paymentMethod['id']);
+                } else {
+                    // Create subscription to chosen plan with created payment method
+                    $result = $user->newSubscription($currentPlan->name, $currentPlan->stripe_plan_id)
+                                ->quantity($attr['quantity'])
+                                ->create($paymentMethod['id']);
+                }
 
                 if ($attr['trial']) {
                     return response()->json(['message' => 'Successfully subscribed',
@@ -140,6 +164,69 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
             }
         } else {
             return response()->json(['message' => 'Current user already subscribed to plan: ' . $plan['name']], 200);
+        }
+    }
+
+    public function updateTrial($attr)
+    {
+        $user = auth()->user();
+
+        try {
+            $user->quantity = $attr['quantity'];
+            $user->coupon = $attr['coupon'];
+
+            $trialDays = 0;
+            if ($user->coupon == 'coupon1') $trialDays = 30;
+            else if ($user->coupon == 'coupon2') $trialDays = 60;
+            $user->trial_ends_at = $user->trial_ends_at->addDays($trialDays);
+            
+            $user->save();
+
+            return response()->json(['status' => 1, 'message' => 'Trial period updated'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 0, 'message' => $e->getMessage()], 404);
+        }
+    }
+
+    public function updateCard($attr)
+    {
+        $user = auth()->user();
+
+        try {
+            $stripe = new StripeClient(config('services.stripe.stripe_secret'));
+
+            // Create Stripe payment method id (with Stripe customer id)
+            $paymentMethod = $stripe->paymentMethods->create([
+                'type' => 'card',
+                'card' => [
+                    'number' => $attr['card_number'],
+                    'exp_month' => $attr['expiration_month'],
+                    'exp_year' => $attr['expiration_year'],
+                    'cvc' => $attr['cvc'],
+                ]
+            ]);
+
+            $user->updateDefaultPaymentMethod($paymentMethod['id']);
+
+            return response()->json(['status' => 1, 'message' => 'Card updated successfully'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 0, 'message' => $e->getMessage()], 404);
+        }
+    }
+
+    public function deleteCard()
+    {
+        $user = auth()->user();
+
+        try {
+            $user->deletePaymentMethods();
+
+            return response()->json(['status' => 1, 'message' => 'Payment method successfully deleted'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 0, 'message' => $e->getMessage()], 404);
         }
     }
 }

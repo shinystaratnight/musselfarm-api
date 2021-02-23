@@ -95,6 +95,9 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::post('subscription', [SubscriptionController::class, 'getSubscription']);
         Route::post('cancel', [SubscriptionController::class, 'cancelSubscription']);
         Route::post('resume', [SubscriptionController::class, 'getResume']);
+        Route::post('update-trial', [SubscriptionController::class, 'updateTrial']);
+        Route::post('update-card', [SubscriptionController::class, 'updateCard']);
+        Route::post('delete-card', [SubscriptionController::class, 'deleteCard']);
         // Invoices download route
         Route::get('invoices/download/{paymentId}', [InvoiceController::class, 'downloadInvoice']);
 

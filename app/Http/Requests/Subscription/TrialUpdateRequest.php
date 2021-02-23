@@ -1,14 +1,18 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\Subscription;
 
-use Illuminate\Contracts\Validation\Validator;
+use LVR\CreditCard\CardCvc;
+use LVR\CreditCard\CardNumber;
+use LVR\CreditCard\CardExpirationYear;
+use LVR\CreditCard\CardExpirationMonth;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class SignupUserRequest extends FormRequest
+class TrialUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,12 +32,7 @@ class SignupUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string',
-            'email' => 'required|string|email:rfc,dns|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'company_name' => 'string',
-            'company_address' => 'string',
-            'phone_number' => 'numeric',
+            'quantity' => 'required|numeric',
             'coupon' => 'required|string',
         ];
     }
