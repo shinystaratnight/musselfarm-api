@@ -12,7 +12,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class SubscriptionRequest extends FormRequest
+class SubscriptionUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -32,12 +32,8 @@ class SubscriptionRequest extends FormRequest
     public function rules()
     {
         return [
-            'card_number' => ['required', new CardNumber],
-            'expiration_year' => ['required', new CardExpirationYear($this->get('expiration_month'))],
-            'expiration_month' => ['required', new CardExpirationMonth($this->get('expiration_year'))],
-            'cvc' => ['required', new CardCvc($this->get('card_number'))],
-            'plan_id' => 'required|string|exists:plans,id',
-            'quantity' => 'required|numeric|between:1,9999999',
+            'quantity' => 'required|numeric',
+            'plan_id' => 'required|string',
         ];
     }
 

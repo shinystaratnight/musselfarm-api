@@ -23,7 +23,7 @@ class User extends Authenticatable
      */
     protected $cascadeDeletes = ['profile'];
 
-    protected $fillable = ['email', 'password', 'coupon', 'active', 'activation_token', 'quantity'];
+    protected $fillable = ['email', 'password', 'coupon', 'quantity', 'active', 'activation_token'];
 
     protected $dates = [
         'created_at',

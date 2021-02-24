@@ -19,7 +19,7 @@ use \App\Http\Controllers\Farm\HarvestGroupController;
 use \App\Http\Controllers\Budget\LineBudgetController;
 use \App\Http\Controllers\Budget\BudgetLogController;
 use App\Http\Controllers\Overview\OverviewController;
-
+use App\Http\Controllers\WebhookController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -96,6 +96,7 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::post('cancel', [SubscriptionController::class, 'cancelSubscription']);
         Route::post('resume', [SubscriptionController::class, 'getResume']);
         Route::post('update-trial', [SubscriptionController::class, 'updateTrial']);
+        Route::post('update-subscription', [SubscriptionController::class, 'updateSubscription']);
         Route::post('update-card', [SubscriptionController::class, 'updateCard']);
         Route::post('delete-card', [SubscriptionController::class, 'deleteCard']);
         // Invoices download route
@@ -159,7 +160,9 @@ Route::group(['middleware' => 'auth:api'], function ()
 });
 
 // Stripe webhook routes
-Route::stripeWebhooks('stripe-webhook'); 
+// Route::stripeWebhooks('stripe-webhook'); 
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
+
 Route::post('refresh', [AuthController::class, 'refresh']);
 Route::get('apply-email', [ChangeUserEmailController::class, 'apply'])->name('apply');
 
