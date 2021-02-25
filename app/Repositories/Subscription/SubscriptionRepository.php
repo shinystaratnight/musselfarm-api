@@ -119,6 +119,8 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
             if($user->subscription($this->planName)->cancelled()) { // actived once, but cancelled
                 DB::table('subscriptions')->where('user_id', $user->id)->delete();
 
+                $stripe = new StripeClient(config('services.stripe.stripe_secret'));
+                $stripe->customers->delete($user->stripe_id, []);
                 $user->stripe_id = null;
                 $user->card_brand = null;
                 $user->card_last_four = null;
@@ -148,11 +150,11 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
                 $user->quantity = $attr['quantity'];
                 $user->save();
 
-                return response()->json(['message' => 'Successfully subscribed'], 200);
+                return response()->json(['message' => 'Successfully subscribed', 'data' => $result], 200);
+            } else {
+                return response()->json(['message' => 'Current user already subscribed to plan: ' . $this->planName], 200);
             }
-            return response()->json(['message' => 'S111uccessf11ully subscribed'], 200);
         }
-
         // Checking - is user active subscription
         else if (!isset($plan['name']) || $user->subscribed($plan['name']) === false)
         {
@@ -182,7 +184,7 @@ class SubscriptionRepository implements SubscriptionRepositoryInterface
                 return response()->json(['message' => 'Successfully subscribed'], 200);
 
             } catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 404);
+                return response()->json(['message' => $e->getMessage()], 200);
             }
         } else {
             return response()->json(['message' => 'Current user already subscribed to plan: ' . $plan['name']], 200);

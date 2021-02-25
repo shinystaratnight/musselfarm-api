@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierController;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 
 class WebhookController extends CashierController
 {
@@ -13,11 +14,19 @@ class WebhookController extends CashierController
      * @param  array  $payload
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handleInvoicePaymentSucceeded($payload)
+    protected function handleInvoicePaymentSucceeded($payload)  
     {
-        DB::table('users')->where('id', 9)->update([
-            'email_verified_at' => implode($payload)
+        $user = $this->getUserByStripeId($payload['data']['object']['customer']);
+        DB::table('subscriptions')->where('id', $user->id)->update([
+            'stripe_status' => 'active'
         ]);
+        DB::table('users')->where('id', $user->id)->update([
+            'stripe_id' => $payload['data']['object']['customer']
+        ]);
+        return response()->json([
+            'message' => 'Successfully paid',
+            'customer' => $payload['data']['object']['customer']
+        ], 200);
         // Handle the incoming event...
     }
 }

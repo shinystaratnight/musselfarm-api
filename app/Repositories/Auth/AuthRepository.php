@@ -35,6 +35,7 @@ class AuthRepository implements AuthRepositoryInterface
             'password' => Hash::make($attr['password']),
             'activation_token' => Str::random(60),
             'coupon' => $attr['coupon'],
+            'quantity' => 1,
         ]);
 
         if($user) {

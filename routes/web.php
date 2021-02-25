@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WebhookController;
+use Illuminate\Support\Facades\Redirect;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,5 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return Redirect::to(config('services.api.front_end_url'));
 });
+
+// Stripe webhook routes
+// Route::stripeWebhooks('stripe-webhook'); 
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
