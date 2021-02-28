@@ -94,9 +94,7 @@ class AuthRepository implements AuthRepositoryInterface
         $user = User::where('activation_token', $token)->first();
 
         if (!$user) {
-            return response()->json([
-                'message' => 'This activation token is invalid.'
-            ], 404);
+            return redirect( config('services.api.front_end_url'));
         }
 
         $user->active = true;
