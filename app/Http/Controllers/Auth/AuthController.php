@@ -81,7 +81,6 @@ class AuthController extends Controller
 
     }
 
-//
 //    public function invitedSignup(Request $request)
 //    {
 //        dd($request->all());
@@ -95,5 +94,10 @@ class AuthController extends Controller
     public function refresh(Request $request)
     {
         return $this->authRepo->refreshToken($request);
+    }
+
+    public function tokenExpired(Request $request)
+    {
+        return response()->json(['message' => 'Unauthenticated.'], 200);
     }
 }

@@ -19,6 +19,7 @@ use \App\Http\Controllers\Farm\HarvestGroupController;
 use \App\Http\Controllers\Budget\LineBudgetController;
 use \App\Http\Controllers\Budget\BudgetLogController;
 use App\Http\Controllers\Overview\OverviewController;
+use App\Http\Controllers\WebhookController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -45,6 +46,7 @@ Route::group(['prefix' => 'auth'], function()
     Route::get('invitation-redirect', [AuthController::class, 'invitationRedirect'])->name('inviting');
 
     Route::get('signup/activate/{token}', [AuthController::class, 'signupActivate']);
+    Route::get('token-expired', [AuthController::class, 'tokenExpired']);
 });
 
 Route::group(['middleware' => 'auth:api'], function ()
@@ -157,6 +159,9 @@ Route::group(['middleware' => 'auth:api'], function ()
         });
     });
 });
+
+//Stripe webhook routes
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
 
 Route::post('refresh', [AuthController::class, 'refresh']);
 Route::get('apply-email', [ChangeUserEmailController::class, 'apply'])->name('apply');
