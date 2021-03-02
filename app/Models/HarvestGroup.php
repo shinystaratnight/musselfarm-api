@@ -10,7 +10,7 @@ class HarvestGroup extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $dateFormat = 'Y-m-d H:i:sO';
+    protected $dateFormat = 'Y-m-d H:i:s';
 
     protected $fillable = ['line_id',
                            'name',
@@ -23,6 +23,12 @@ class HarvestGroup extends Model
                            'seed_id',
                            'condition',
                            'profit_per_meter'];
+
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
 
     public function assessments()
     {

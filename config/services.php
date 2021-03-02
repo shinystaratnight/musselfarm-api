@@ -40,5 +40,10 @@ return [
     'api' => [
         'api_url' => env('API_URL'),
         'front_end_url' => env('FRONT_END_URL')
+    ],
+
+    'passport' => [
+        'token_expire_in' => env('PASSPORT_TOKEN_EXPIRE_IN', 15),
+        'refresh_token_expire_in' => env('PASSPORT_REFRESH_TOKEN_EXPIRE_IN', 1)
     ]
 ];

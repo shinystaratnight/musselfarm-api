@@ -46,7 +46,7 @@ Route::group(['prefix' => 'auth'], function()
     Route::get('invitation-redirect', [AuthController::class, 'invitationRedirect'])->name('inviting');
 
     Route::get('signup/activate/{token}', [AuthController::class, 'signupActivate']);
-    Route::get('token-expired', [AuthController::class, 'tokenExpired']);
+    Route::get('token-expired', [AuthController::class, 'tokenExpired'])->name('auth-token-expired');
 });
 
 Route::group(['middleware' => 'auth:api'], function ()
