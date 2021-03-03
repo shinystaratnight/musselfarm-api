@@ -210,8 +210,7 @@ class AuthRepository implements AuthRepositoryInterface
                 'form_params' => [
                     'grant_type' => 'password',
                     'client_id' => $oClient->id,
-                    // 'client_secret' => $oClient->secret,
-                    'client_secret' => '1WaRtPmD7dN8Pujxz7sYSHa9dIBPTipqgymfJElD',
+                    'client_secret' => $oClient->secret,
                     'username' => $email,
                     'password' => $password,
                     'scope' => '',
