@@ -96,11 +96,14 @@ class OverviewRepository implements OverviewRepositoryInterface
                                     ->sum('planned_harvest_tones_actual');
 
             return response()->json([['name' => 'Total area',
-                                      'value' => !empty($farmsArea) ? $farmsArea : 0],
+                                      'value' => !empty($farmsArea) ? $farmsArea : 0,
+                                      'unit' => 'h'],
                                      ['name' => 'Total length of lines',
-                                      'value' => !empty($linesLength) ? $linesLength : 0],
+                                      'value' => !empty($linesLength) ? $linesLength : 0,
+                                      'unit' => 'm'],
                                      ['name' => 'Total harvest in current year',
-                                      'value' => !empty($totalTones) ? $totalTones : 0]], 200);
+                                      'value' => !empty($totalTones) ? $totalTones : 0,
+                                      'unit' => 't']], 200);
         }
     }
 
