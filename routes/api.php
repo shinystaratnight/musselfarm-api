@@ -20,6 +20,7 @@ use \App\Http\Controllers\Budget\LineBudgetController;
 use \App\Http\Controllers\Budget\BudgetLogController;
 use App\Http\Controllers\Overview\OverviewController;
 use App\Http\Controllers\WebhookController;
+use \App\Http\Controllers\UtilController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -157,6 +158,11 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::group(['prefix' => 'seed'], function() {
             Route::resource('seeds', SeedController::class);
         });
+    });
+
+    //Util routes
+    Route::group(['prefix' => 'util'], function() {
+        Route::resource('utils', UtilController::class);
     });
 });
 
