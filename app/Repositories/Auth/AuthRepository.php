@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Auth;
 
+use App\Models\FarmUtil;
 use App\Models\Payment;
 use App\Models\Plan;
 use App\Notifications\ChargeSuccessNotification;
@@ -65,15 +66,15 @@ class AuthRepository implements AuthRepositoryInterface
             return $this->error('Credentials mismatch', 401);
         }
 
-            if(Auth::attempt(['email' => $attr['email'], 'password' => $attr['password'], 'active' => 1])) {
-                $oClient = OClient::where('password_client', 1)->first();
-                return $this->getTokens($oClient, $attr['email'], $attr['password']);
+        if(Auth::attempt(['email' => $attr['email'], 'password' => $attr['password'], 'active' => 1])) {
+            $oClient = OClient::where('password_client', 1)->first();
+            return $this->getTokens($oClient, $attr['email'], $attr['password']);
 
-            } else {
+        } else {
 
-                return response(['message' => 'Account is not active'], 401);
+            return response(['message' => 'Account is not active'], 401);
 
-            }
+        }
     }
 
     public function resend($attr)
@@ -109,6 +110,22 @@ class AuthRepository implements AuthRepositoryInterface
         $user->quantity = 1;
         $user->save();
 
+        // Set Default Farms Util
+        $defaultFarmsUtilData = [
+            ['name' => 'D-Seed1', 'type' =>'seed'],
+            ['name' => 'D-Seed2', 'type' =>'seed'],
+            ['name' => 'D-Seed3', 'type' =>'seed'],
+            ['name' => 'D-Maintenance1', 'type' =>'maintenance'],
+            ['name' => 'D-Maintenance2', 'type' =>'maintenance'],
+            ['name' => 'D-Maintenance3', 'type' =>'maintenance'],
+        ];
+        $farmUtils = array_map(function ($util) {
+            $util['user_id'] = $user->id;
+            return $util;
+        }, $defaultFarmsUtilData);
+
+        FarmUtil::insert($farmUtils);
+
         return redirect( config('services.api.front_end_url') . '/sign-in/checked');
     }
 
@@ -127,75 +144,75 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function inviteRegister($attr)
     {
-            $invite = Invite::where('token', $attr['token'])->first();
+        $invite = Invite::where('token', $attr['token'])->first();
 
-            if($invite->email === $attr['email']) {
+        if($invite->email === $attr['email']) {
 
-                if ($invite) {
+            if ($invite) {
 
-                    $inviting = Inviting::where('token', $attr['token'])->first();
+                $inviting = Inviting::where('token', $attr['token'])->first();
 
-                    $data = json_decode($inviting['user_access']);
+                $data = json_decode($inviting['user_access']);
 
-                    $permissions = [];
+                $permissions = [];
 
-                    if (!empty($data->permission_id)) {
-                        foreach ($data->permission_id as $key => $permission_id) {
+                if (!empty($data->permission_id)) {
+                    foreach ($data->permission_id as $key => $permission_id) {
 
-                            $name = Permission::find($permission_id);
+                        $name = Permission::find($permission_id);
 
-                            $permissions[] = $name['name'];
-                        }
+                        $permissions[] = $name['name'];
                     }
+                }
 
-                    if (!empty($invite->id)) {
+                if (!empty($invite->id)) {
 
-                        $user = User::create([
-                            'name' => $attr['name'],
-                            'email' => $attr['email'],
-                            'password' => Hash::make($attr['password']),
-                            'active' => true
+                    $user = User::create([
+                        'name' => $attr['name'],
+                        'email' => $attr['email'],
+                        'password' => Hash::make($attr['password']),
+                        'active' => true
+                    ]);
+
+                    if ($user) {
+
+                        UserProfile::create([
+                            'user_id' => $user->id,
+                            'name' => $attr['name']
                         ]);
 
-                        if ($user) {
+                        $inviting->update([
+                            'invited_user_id' => $user->id,
+                            'status' => 'active'
+                        ]);
 
-                            UserProfile::create([
-                                'user_id' => $user->id,
-                                'name' => $attr['name']
-                            ]);
+                        $role = Role::find($data->role_id);
 
-                            $inviting->update([
-                                'invited_user_id' => $user->id,
-                                'status' => 'active'
-                            ]);
+                        $user->assignRole($role->name);
 
-                            $role = Role::find($data->role_id);
+                        if (!empty($data->farm_id)) {
+                            $user->farms()->attach($data->farm_id);
+                        }
 
-                            $user->assignRole($role->name);
+                        if (!empty($data->line_id)) {
+                            $user->lines()->attach($data->line_id);
+                        }
 
-                            if (!empty($data->farm_id)) {
-                                $user->farms()->attach($data->farm_id);
-                            }
-
-                            if (!empty($data->line_id)) {
-                                $user->lines()->attach($data->line_id);
-                            }
-
-                            if (!empty($permissions)) {
-                                foreach ($permissions as $key => $permission) {
-                                    $user->givePermissionTo($permission);
-                                }
+                        if (!empty($permissions)) {
+                            foreach ($permissions as $key => $permission) {
+                                $user->givePermissionTo($permission);
                             }
                         }
-                        return response()->json(['status' => 'success'], 200);
                     }
-                } else {
-                    return response()->json(['status' => 'Token is invalid or expire'], 404);
+                    return response()->json(['status' => 'success'], 200);
                 }
             } else {
-                return response()->json(['status' => 'Error',
-                                         'message' => 'Invited user has another email address'], 404);
+                return response()->json(['status' => 'Token is invalid or expire'], 404);
             }
+        } else {
+            return response()->json(['status' => 'Error',
+                                        'message' => 'Invited user has another email address'], 404);
+        }
     }
 
     public function getTokens(OClient $oClient, $email, $password)
