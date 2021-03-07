@@ -13,7 +13,8 @@ class AssessmentRepository implements AssessmentRepositoryInterface
 {
     public function createAssessment($attr)
     {
-        $average = ($attr['condition_min'] + $attr['condition_max']) / 2;
+        // $average = ($attr['condition_min'] + $attr['condition_max']) / 2;
+        $average = $attr['condition_average'];
 
         $average = (int) round($average);
 

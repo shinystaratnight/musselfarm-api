@@ -29,9 +29,10 @@ class CreateAssessmentRequest extends FormRequest
     {
         return [
             'harvest_group_id' => 'required|numeric|exists:harvest_groups,id',
-            'color' => 'nullable|in:good,fair',
+            'color' => 'nullable',
             'condition_min' => 'nullable|numeric',
             'condition_max' => 'nullable|numeric',
+            'condition_average' => 'nullable|numeric',
             'blues' => 'nullable|numeric',
             'tones' => 'nullable|numeric|between:0.000,999999.999',
             'planned_date_harvest' => 'nullable|numeric',
