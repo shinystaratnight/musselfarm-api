@@ -32,7 +32,7 @@ class CreateHarvestGroupRequest extends FormRequest
             "name" => 'required|string',
             "planned_date" => 'required|numeric',
             "planned_date_harvest" => 'required|numeric',
-            "seed_id" => 'required|numeric|exists:seeds,id',
+            "seed_id" => 'required|numeric|exists:farm_utils,id',
         ];
     }
 

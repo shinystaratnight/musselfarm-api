@@ -31,7 +31,7 @@ class UpdateHarvestGroupRequest extends FormRequest
             'name' => 'nullable|string',
             'planned_date' => 'nullable|numeric',
             'planned_date_harvest' => 'nullable|numeric',
-            'seed_id' => 'nullable|numeric|exists:seeds,id',
+            'seed_id' => 'nullable|numeric|exists:farm_utils,id',
 //            'harvest_start_date' => 'nullable|numeric'
         ];
     }

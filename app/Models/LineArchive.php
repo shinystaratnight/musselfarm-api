@@ -25,6 +25,6 @@ class LineArchive extends Model
 
     public function seeds()
     {
-        return $this->belongsTo(Seed::class, 'seed_id', 'id');
+        return $this->belongsTo(FarmUtil::class, 'seed_id', 'id');
     }
 }
