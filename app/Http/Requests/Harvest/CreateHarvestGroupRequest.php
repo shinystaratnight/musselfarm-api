@@ -29,7 +29,7 @@ class CreateHarvestGroupRequest extends FormRequest
     {
         return [
             "line_id" => 'required|numeric|exists:lines,id',
-            "name" => 'required|string',
+            "name" => 'required|numeric|exists:seasons,id',
             "planned_date" => 'required|numeric',
             "planned_date_harvest" => 'required|numeric',
             "seed_id" => 'required|numeric|exists:farm_utils,id',

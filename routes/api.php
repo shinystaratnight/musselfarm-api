@@ -21,6 +21,7 @@ use \App\Http\Controllers\Budget\BudgetLogController;
 use App\Http\Controllers\Overview\OverviewController;
 use App\Http\Controllers\WebhookController;
 use \App\Http\Controllers\UtilController;
+use \App\Http\Controllers\SeasonController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -163,6 +164,11 @@ Route::group(['middleware' => 'auth:api'], function ()
     //Util routes
     Route::group(['prefix' => 'util'], function() {
         Route::resource('utils', UtilController::class);
+    });
+
+    //Season routes
+    Route::group(['prefix' => 'season'], function() {
+        Route::resource('seasons', SeasonController::class);
     });
 });
 

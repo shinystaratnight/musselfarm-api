@@ -20,6 +20,7 @@ class GroupForLineResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'season_name' => $this->seasons->season_name,
             'harvest_complete_date' => $this->harvest_complete_date !== '0' ? $this->harvest_complete_date : null,
             'planned_date_harvest' => $this->planned_date_harvest,
             'planned_date_harvest_original' => $this->planned_date_harvest_original ,

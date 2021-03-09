@@ -35,6 +35,10 @@ class HarvestGroup extends Model
         return $this->hasMany(Assessment::class);
     }
 
+    public function seasons()
+    {
+        return $this->hasOne(Season::class, 'id', 'name');
+    }
     public function lines()
     {
         return $this->belongsTo(Line::class, 'line_id', 'id');
