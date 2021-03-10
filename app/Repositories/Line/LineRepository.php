@@ -54,6 +54,9 @@ class LineRepository implements LineRepositoryInterface
 
     public function editLine($attr)
     {
-        Line::where('id', $attr['line_id'])->update(['length' => $attr['length']]);
+        Line::where('id', $attr['line_id'])->update([
+            'length' => $attr['length'],
+            'line_name' => $attr['line_name'],
+        ]);
     }
 }
