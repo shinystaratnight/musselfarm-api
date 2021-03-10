@@ -33,6 +33,7 @@ class FarmRequest extends FormRequest
             'long' => ["required", "numeric", "regex:/^[-]?((((1[0-7][0-9])|([0-9]?[0-9]))\.(\d+))|180(\.0+)?)$/"],
             'lat' => ["required", "numeric", "regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/"],
             'area' => 'required|numeric|min:1',
+            'farm_number' => 'required|string|max:16',
             'owner' => 'array|nullable'
         ];
     }

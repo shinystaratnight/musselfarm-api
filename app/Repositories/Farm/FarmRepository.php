@@ -17,6 +17,7 @@ class FarmRepository implements FarmRepositoryInterface
             'long' => $attr['long'],
             'lat' => $attr['lat'],
             'area' => $attr['area'],
+            'farm_number' => $attr['farm_number'],
             'owner' => json_encode($attr['owner'])
         ]);
 

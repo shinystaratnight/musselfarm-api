@@ -14,7 +14,7 @@ class Farm extends Model
 
     protected $cascadeDeletes = ['lines'];
 
-    protected $fillable = ['user_id', 'name', 'long', 'lat', 'area', 'owner'];
+    protected $fillable = ['user_id', 'name', 'long', 'lat', 'area', 'owner', 'farm_number'];
 
     public function users()
     {
@@ -25,6 +25,11 @@ class Farm extends Model
     {
         return $this->hasMany(Line::class);
     }
+
+    // public function farm_budgets()
+    // {
+    //     return $this->hasMany(FarmExpenses::class);
+    // }
 
     public function lines_budgets()
     {

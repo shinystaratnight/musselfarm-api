@@ -32,7 +32,8 @@ class UpdateFarmRequest extends FormRequest
             'long' => ["nullable", "numeric", "regex:/^[-]?((((1[0-7][0-9])|([0-9]?[0-9]))\.(\d+))|180(\.0+)?)$/"],
             'lat' => ["nullable", "numeric", "regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/"],
             'area' => 'nullable|numeric|min:1',
-            'owner' => 'array|nullable'
+            'farm_number' => 'required|string|max:16',
+            'owner' => 'array|nullable',
         ];
     }
 
