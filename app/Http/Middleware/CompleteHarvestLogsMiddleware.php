@@ -39,7 +39,7 @@ class CompleteHarvestLogsMiddleware
                 $lb = LineBudget::where('end_budget', 0)
                     ->where('line_id', $harvestGroup->line_id)->first();
             } else {
-                $lb = LineBudget::where('start_budget', '<=', $harvestGroup->planned_date)
+                $lb = LineBudget::where('start_budget', '<=', $harvestGroup->planned_date_harvest)
                     ->where('end_budget', '>=', $harvestGroup->planned_date_harvest)
                     ->where('line_id', $harvestGroup->line_id)->first();
             }
