@@ -65,6 +65,7 @@ class HarvestGroupController extends Controller
         $attr = $request->validated();
 
         $harvest = HarvestGroup::where('id', $attr['harvest_group_id'])->first();
+        $harvest->planned_date_harvest = $attr['harvest_complete_date'];
 
         $currentLine = Line::find($harvest->line_id);
 
@@ -75,7 +76,10 @@ class HarvestGroupController extends Controller
         if($currentYear == $requestHarvestDate) {
 
             $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
-                ->update(['harvest_complete_date' => $harvest->planned_date_harvest]);
+                ->update([
+                    'harvest_complete_date' => $harvest->planned_date_harvest,
+                    'planned_date_harvest' => $harvest->planned_date_harvest,
+                ]);
 
             if ($completedHarvest) {
 
@@ -128,7 +132,10 @@ class HarvestGroupController extends Controller
             }
 
             $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
-                ->update(['harvest_complete_date' => $harvest->planned_date_harvest]);
+                ->update([
+                    'harvest_complete_date' => $harvest->planned_date_harvest,
+                    'planned_date_harvest' => $harvest->planned_date_harvest
+                ]);
 
             if ($completedHarvest) {
 
