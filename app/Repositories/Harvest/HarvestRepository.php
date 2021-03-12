@@ -25,6 +25,11 @@ class HarvestRepository implements HarvestRepositoryInterface
                 'planned_date' => $attr['planned_date'],
                 'planned_date_original' => $attr['planned_date'],
                 'seed_id' => $attr['seed_id'],
+                'density' => $attr['density'],
+                'drop' => $attr['drop'],
+                'floats' => $attr['floats'],
+                'spacing' => $attr['spacing'],
+                'submersion' => $attr['submersion'],
             ]);
 
             return response()->json(['status' => 'Success'], 200);
@@ -40,12 +45,19 @@ class HarvestRepository implements HarvestRepositoryInterface
     public function updateHarvest($attr)
     {
         HarvestGroup::where('id', $attr['harvest_group_id'])
-                    ->update([
-                              'name' => $attr['name'],
-                              'planned_date' => $attr['planned_date'],
-                              'seed_id' => $attr['seed_id'],
-                              'planned_date_harvest' => $attr['planned_date_harvest'],
-                              'planned_date_harvest_original' => $attr['planned_date_harvest']]);
+            ->update([
+                'name' => $attr['name'],
+                'planned_date' => $attr['planned_date'],
+                'seed_id' => $attr['seed_id'],
+                'planned_date_harvest' => $attr['planned_date_harvest'],
+                'planned_date_harvest_original' => $attr['planned_date_harvest'],
+                'seed_id' => $attr['seed_id'],
+                'density' => $attr['density'],
+                'drop' => $attr['drop'],
+                'floats' => $attr['floats'],
+                'spacing' => $attr['spacing'],
+                'submersion' => $attr['submersion'],
+            ]);
 
         return response()->json(['status' => 'Success'], 200);
     }

@@ -29,6 +29,11 @@ class GroupForLineResource extends JsonResource
             'color' =>  $this->color,
             'seed' =>  $this->seeds->name,
             'condition' =>  $this->condition,
+            'density' => $this->density,
+            'drop' => $this->drop,
+            'floats' => $this->floats,
+            'spacing' => $this->spacing,
+            'submersion' => $this->submersion,
             'profit_per_meter' =>  $this->profit_per_meter,
             'archive_line' => new LineArchivesResource($this->archives),
             'assessments' => AssessmentForGroupResource::collection($this->assessments)

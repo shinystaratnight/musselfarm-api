@@ -22,7 +22,12 @@ class HarvestGroup extends Model
                            'color',
                            'seed_id',
                            'condition',
-                           'profit_per_meter'];
+                           'profit_per_meter',
+                           'density',
+                           'drop',
+                           'floats',
+                           'spacing',
+                           'submersion'];
 
     protected $dates = [
         'created_at',

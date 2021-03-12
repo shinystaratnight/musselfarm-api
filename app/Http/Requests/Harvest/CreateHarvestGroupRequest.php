@@ -33,6 +33,11 @@ class CreateHarvestGroupRequest extends FormRequest
             "planned_date" => 'required|numeric',
             "planned_date_harvest" => 'required|numeric',
             "seed_id" => 'required|numeric|exists:farm_utils,id',
+            "density" => 'required|integer',
+            "drop" => 'required|integer',
+            "floats" => 'required|integer',
+            "spacing" => 'required|integer',
+            "submersion" => 'required|integer',
         ];
     }
 
