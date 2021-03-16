@@ -11,6 +11,7 @@ use Stripe\StripeClient;
 use App\Models\Invite;
 use App\Models\Inviting;
 use App\Models\User;
+use App\Models\Account;
 use App\Models\UserProfile;
 use App\Services\InvoicesService;
 use App\Notifications\SignupActivate;
@@ -108,6 +109,9 @@ class AuthRepository implements AuthRepositoryInterface
         $user->trial_ends_at = now()->addDays($trialDays);
 
         $user->quantity = 1;
+
+        $account = Account::create([]);
+        $user->account_id = $account;
         $user->save();
 
         // Set Default Farms Util
@@ -167,11 +171,15 @@ class AuthRepository implements AuthRepositoryInterface
 
                 if (!empty($invite->id)) {
 
+                    $owner = User::find($inviting->inviting_user_id);
                     $user = User::create([
                         'name' => $attr['name'],
                         'email' => $attr['email'],
                         'password' => Hash::make($attr['password']),
-                        'active' => true
+                        'active' => true,
+                        'coupon' => $attr['coupon'],
+                        'quantity' => 1,
+                        'account_id' => $owner->account_id
                     ]);
 
                     if ($user) {
@@ -236,6 +244,7 @@ class AuthRepository implements AuthRepositoryInterface
 
             $result = json_decode((string)$response->getBody(), true);
 
+            $result['xero'] = auth()->user()->getAccount()->xero_access_token ? true : false;
             return response(['status'=> 'Success',
                              'message' => 'User sign in',
                              'user_id' => auth()->user()->id,
@@ -278,6 +287,8 @@ class AuthRepository implements AuthRepositoryInterface
             ]);
 
             $result = json_decode((string) $response->getBody(), true);
+            $user = User::find($user_id);
+            $result['xero'] = $user->getAccount()->xero_access_token ? true : false;
 
             return response(['status'=> 'Success',
                              'message' => 'User sign in',
@@ -291,4 +302,5 @@ class AuthRepository implements AuthRepositoryInterface
         }
     }
 }
+
 

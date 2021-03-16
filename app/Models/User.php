@@ -23,7 +23,7 @@ class User extends Authenticatable
      */
     protected $cascadeDeletes = ['profile'];
 
-    protected $fillable = ['email', 'password', 'coupon', 'quantity', 'active', 'activation_token'];
+    protected $fillable = ['email', 'password', 'coupon', 'quantity', 'active', 'activation_token', 'account_id'];
 
     protected $dates = [
         'created_at',
@@ -89,5 +89,10 @@ class User extends Authenticatable
         $user = User::find($owner->inviting_user_id);
 
         return $user;
+    }
+
+    public function getAccount()
+    {
+        return Account::where('id', $this->account_id)->first();
     }
 }

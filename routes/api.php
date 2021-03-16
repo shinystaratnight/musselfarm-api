@@ -19,6 +19,7 @@ use \App\Http\Controllers\Farm\HarvestGroupController;
 use \App\Http\Controllers\Budget\LineBudgetController;
 use \App\Http\Controllers\Budget\BudgetLogController;
 use App\Http\Controllers\Overview\OverviewController;
+use App\Http\Controllers\Xero\XeroController;
 use App\Http\Controllers\WebhookController;
 use \App\Http\Controllers\UtilController;
 use \App\Http\Controllers\SeasonController;
@@ -53,6 +54,9 @@ Route::group(['prefix' => 'auth'], function()
 
 Route::group(['middleware' => 'auth:api'], function ()
 {
+    // Xero get-data exmaple
+    // Route::post('get-data', [XeroController::class, 'getSomeData']);
+
     // Overview widgets route
     Route::group(['prefix' => 'overview'], function() {
         Route::post('next-seeding', [OverviewController::class, 'nextSeeding']);
@@ -62,6 +66,8 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::post('farm-budget-info', [OverviewController::class, 'farmBudgetedInfo']);
         Route::post('chart-info', [OverviewController::class, 'getChart']);
     });
+
+    Route::post('xero/connect', [XeroController::class, 'redirectUserToXero']);
 
     Route::group(['prefix' => 'user'], function() {
 
@@ -114,6 +120,9 @@ Route::group(['middleware' => 'auth:api'], function ()
     Route::group(['prefix' => 'farm'], function() {
         Route::resource('farms', FarmController::class);
         Route::get('farms-all', [FarmController::class, 'allFarms']);
+
+        // Add new farm expenses route
+        // Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);
 
         // Line routes
         Route::group(['prefix' => 'line'], function() {

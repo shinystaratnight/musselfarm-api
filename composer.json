@@ -16,6 +16,7 @@
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
         "intervention/image": "^2.5",
+        "langleyfoxall/xero-laravel": "^3.1",
         "laravel-validation-rules/credit-card": "^1.4",
         "laravel/cashier": "^12.5",
         "laravel/framework": "^8.12",

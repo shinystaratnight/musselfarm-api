@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\Xero\XeroController;
 use Illuminate\Support\Facades\Redirect;
 
 /*
@@ -22,3 +23,5 @@ Route::get('/', function () {
 // Stripe webhook routes
 // Route::stripeWebhooks('stripe-webhook'); 
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
+
+Route::get('xero/callback/{token}', [XeroController::class, 'handleAuthCallbackFromXero']);
