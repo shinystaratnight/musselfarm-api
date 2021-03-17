@@ -24,4 +24,5 @@ Route::get('/', function () {
 // Route::stripeWebhooks('stripe-webhook'); 
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook']);
 
+Route::get('xero/connect', [XeroController::class, 'redirectUserToXero']);
 Route::get('xero/callback/{token}', [XeroController::class, 'handleAuthCallbackFromXero']);

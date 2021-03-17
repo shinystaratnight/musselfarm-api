@@ -19,33 +19,6 @@ class MyOAuth2 extends OAuth2
         $this->scope = 'openid email profile offline_access accounting.settings.read';
     }
 
-    public function getAuthorizationRedirect()
-    {
-        $provider = $this->getProvider();
-
-        $authUri = $provider->getAuthorizationUrl(['scope' => $this->scope]);
-
-        session()->put(self::KEYS['SESSION_STATE'], $provider->getState());
-
-        return $authUri;
-    }
-
-    public function getAccessTokenFromXeroRequest(Request $request)
-    {
-        $code = $request->get('code');
-        $state = $request->get('state');
-
-        if (!$code) {
-            throw new InvalidXeroRequestException('No `code` present in request from Xero.');
-        }
-
-        if (!$state) {
-            throw new InvalidXeroRequestException('No `state` present in request from Xero.');
-        }
-
-        return $this->getProvider()->getAccessToken('authorization_code', ['code' => $code]);
-    }
-
     protected function getProvider()
     {
         return new Provider([

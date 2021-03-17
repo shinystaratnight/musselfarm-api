@@ -28,6 +28,7 @@ class XeroConnectRequest extends FormRequest
     public function rules()
     {
         return [
+            'user_id' => 'required|numeric|exists:users,id',
             'client_id' => 'required|string',
             'client_secret' => 'required|string',
             'redirect_url' => 'required|string',

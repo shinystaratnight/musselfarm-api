@@ -67,8 +67,6 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::post('chart-info', [OverviewController::class, 'getChart']);
     });
 
-    Route::post('xero/connect', [XeroController::class, 'redirectUserToXero']);
-
     Route::group(['prefix' => 'user'], function() {
 
         // Invited users actions route

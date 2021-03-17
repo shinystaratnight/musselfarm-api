@@ -24,15 +24,12 @@ class XeroController extends Controller
     {
         // Step 1 - Redirect the user to the Xero authorization URL.
         $attr = $request->validated();
-        $account = auth()->user()->getAccount();
+        $account = User::find($attr['user_id'])->getAccount();
         $account->client_id = $attr['client_id'];
         $account->client_secret = $attr['client_secret'];
         $account->redirect_url = $attr['redirect_url'];
         $account->save();
-        return response([
-            'status' => 'success',
-            'url' => $this->getOAuth2(auth()->user()->id)->getAuthorizationRedirect(),
-        ], 200);
+        return $this->getOAuth2($attr['user_id'])->getAuthorizationRedirect();
     }
 
     public function handleAuthCallbackFromXero(Request $request, $token)
