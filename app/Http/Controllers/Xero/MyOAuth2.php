@@ -29,6 +29,22 @@ class MyOAuth2 extends OAuth2
         return $authUri;
     }
 
+    public function getAccessTokenFromXeroRequest(Request $request)
+    {
+        $code = $request->get('code');
+        $state = $request->get('state');
+
+        if (!$code) {
+            throw new InvalidXeroRequestException('No `code` present in request from Xero.');
+        }
+
+        if (!$state) {
+            throw new InvalidXeroRequestException('No `state` present in request from Xero.');
+        }
+
+        return $this->getProvider()->getAccessToken('authorization_code', ['code' => $code]);
+    }
+
     protected function getProvider()
     {
         return new Provider([
