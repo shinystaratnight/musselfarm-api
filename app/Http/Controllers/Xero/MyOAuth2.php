@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Xero;
 
 use App\Models\User;
 use App\Models\Account;
+use Illuminate\Http\Request;
 use LangleyFoxall\XeroLaravel\OAuth2;
 use Calcinai\OAuth2\Client\Provider\Xero as Provider;
 
