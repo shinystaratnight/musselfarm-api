@@ -4,6 +4,7 @@ namespace App\Repositories\Line;
 
 use App\Http\Resources\Budget\FarmBudgetResource;
 use App\Models\Expenses;
+use App\Models\FarmExpenses;
 use App\Models\Farm;
 use App\Models\Line;
 use App\Models\SeedingCost;
@@ -11,9 +12,17 @@ use App\Models\MaintenanceCost;
 use App\Models\LineBudget;
 use App\Http\Resources\Budget\BudgetFarmsLinesResourse;
 use App\Http\Resources\Budget\BudgetFarmsLinesByPeriodResource;
+use App\Repositories\Xero\InvoiceRepository;
 use Carbon\Carbon;
 
 class LineBudgetRepository implements LineBudgetRepositoryInterface {
+
+    private $invoiceRepo;
+
+    public function __construct(InvoiceRepository $invoice)
+    {
+        $this->invoiceRepo = $invoice;
+    }
 
     public function createBudget($attr)
     {
@@ -95,10 +104,39 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
     {
         foreach($attr['expenses'] as $expens) {
 
-            if($expens['type'] == 's') {
+            if($expens['type'] == 's' || $expens['type'] == 'm') {
 
                 Expenses::create([
                     'line_budget_id' => $expens['line_budget_id'],
+                    'type' => $expens['type'],
+                    'expenses_name' => $expens['expenses_name'],
+                    'price_budget' => $expens['price_budget'],
+                    'price_actual' => $expens['price_actual'],
+                    'rdata' => json_encode($expens),
+                ]);
+
+                if ($expens['budget_type'] == 'a' && $expens['to_xero']) {
+                    $this->invoiceRepo->addInvoice($expens);
+                }
+
+            } else {
+
+                return response()->json(['status' => 'Error', 'message' => 'Invalid type'], 400);
+
+            }
+        }
+
+        return response()->json(['status' => 'Success'], 200);
+    }
+
+    public function newFarmExpenses($attr)
+    {
+        foreach($attr['expenses'] as $expens) {
+
+            if($expens['type'] == 's') {
+
+                FarmExpenses::create([
+                    'farm_id' => $expens['farm_id'],
                     'type' => 's',
                     'expenses_name' => $expens['expenses_name'],
                     'price_budget' => $expens['price_budget'],
@@ -106,8 +144,8 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                 ]);
 
             } elseif ($expens['type'] == 'm') {
-                Expenses::create([
-                    'line_budget_id' => $expens['line_budget_id'],
+                FarmExpenses::create([
+                    'farm_id' => $expens['farm_id'],
                     'type' => 'm',
                     'expenses_name' => $expens['expenses_name'],
                     'price_budget' => $expens['price_budget'],
@@ -238,8 +276,14 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
             $budget = Expenses::find($attr['expenses_id']);
 
-            $budget[$attr['data_row']] = $attr['value'];
-            // TODO add expenses log logic
+            if ($attr['to_xero']) {
+                $this->invoiceRepo->updateInvoice($budget, $attr);
+                $attr['price_actual'] = $attr['value'];
+                $merge = array_merge((array)json_decode($budget['rdata']), $attr);
+                $budget['rdata'] = json_encode($merge);
+                $budget[$attr['data_row']] = $attr['value'];
+            }
+            
             $budget->save();
 
             return response()->json(['status' => 'Success'], 200);

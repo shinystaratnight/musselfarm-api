@@ -9,6 +9,12 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Xero\XeroConnectRequest;
 
+use XeroPHP\Application;
+use XeroPHP\Models\Accounting\Account;
+use XeroPHP\Models\Accounting\Contact;
+use XeroPHP\Models\Accounting\Invoice;
+use XeroPHP\Models\Accounting\LineItem;
+
 use LangleyFoxall\XeroLaravel\XeroApp;
 
 class XeroController extends Controller
@@ -61,26 +67,8 @@ class XeroController extends Controller
         if ($accessToken->hasExpired()) {
             $accessToken = $this->getOAuth2(auth()->user()->id)->refreshAccessToken($accessToken);
 
-            $account->xero_access_token = json_encode((array)$accessToken);
+            $account->xero_access_token = json_encode((array)json_decode(json_encode($accessToken)));
             $account->save();
         }
     }
-
-    // Xero test function
-    // public function getSomeData()
-    // {
-    //     $user = auth()->user()->getAccount(); 
-
-    //     $this->refreshAccessTokenIfNecessary();
-
-    //     $xero = new XeroApp(
-    //         new AccessToken((array)json_decode($user->xero_access_token)),
-    //         $user->tenant_id
-    //     );
-
-    //     $contacts = $xero->accounts;
-    //     return response([
-    //         'data' => $contacts
-    //     ], 200);        
-    // }
 }

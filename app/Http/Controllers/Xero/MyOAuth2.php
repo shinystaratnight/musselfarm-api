@@ -16,7 +16,7 @@ class MyOAuth2 extends OAuth2
         $this->clientId = $account->client_id;
         $this->clientSecret = $account->client_secret;
         $this->redirectUri = $account->redirect_url;
-        $this->scope = 'openid email profile offline_access accounting.settings.read';
+        $this->scope = 'openid email profile offline_access accounting.settings accounting.reports.read accounting.contacts accounting.transactions';
     }
 
     protected function getProvider()

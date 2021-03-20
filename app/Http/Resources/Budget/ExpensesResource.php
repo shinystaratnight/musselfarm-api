@@ -21,7 +21,7 @@ class ExpensesResource extends JsonResource
             'expenses_name' => $this->expenses_name,
             'price_budget' => $this->price_budget,
             'price_actual' => $this->price_actual,
-
+            'rdata' => $this->rdata,
         ];
     }
 }

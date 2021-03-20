@@ -32,7 +32,13 @@ class ExpensesRequest extends FormRequest
             'expenses.*.type' => 'required|in:s,m',
             'expenses.*.expenses_name' => 'required|string|max:100',
             'expenses.*.price_budget' => 'required|numeric',
-            'expenses.*.price_actual' => 'required|numeric'
+            'expenses.*.price_actual' => 'required|numeric',
+            'expenses.*.account' => 'string|nullable',
+            'expenses.*.budget_type' => 'required|in:a,b',
+            'expenses.*.date' => 'required|numeric',
+            'expenses.*.due_date' => 'required|numeric',
+            'expenses.*.from' => 'string|nullable',
+            'expenses.*.to_xero' => 'required|boolean',
         ];
     }
 

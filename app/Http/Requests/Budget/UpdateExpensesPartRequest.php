@@ -34,7 +34,12 @@ class UpdateExpensesPartRequest extends FormRequest
             'expenses_id' => 'required|numeric|exists:expenses,id',
             'data_row' => 'required|string|in:price_actual,price_budget',
             'value' => 'required|numeric|min:0|max:9999999.99',
-            'comment' => 'nullable|string|max:255'
+            'comment' => 'nullable|string|max:255',
+            'account' => 'string|nullable',
+            'date' => 'required|numeric',
+            'due_date' => 'required|numeric',
+            'from' => 'string|nullable',
+            'to_xero' => 'required|boolean',
         ];
     }
 
