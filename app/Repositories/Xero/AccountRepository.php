@@ -18,19 +18,23 @@ class AccountRepository
 
     public function getAccounts()
     {
-        $this->xero->refreshAccessTokenIfNecessary();
+        $usr = auth()->user()->getAccount();
+        if ($usr->xero_access_token) {
+            $this->xero->refreshAccessTokenIfNecessary();
 
-        $user = auth()->user()->getAccount();
+            $user = auth()->user()->getAccount();
 
-        $xero = new XeroApp(
-            new AccessToken((array)json_decode($user->xero_access_token)),
-            $user->tenant_id
-        );
+            $xero = new XeroApp(
+                new AccessToken((array)json_decode($user->xero_access_token)),
+                $user->tenant_id
+            );
 
-        $accounts = $xero->accounts()
-            ->where('Status', 'ACTIVE')
-            ->get();
+            $accounts = $xero->accounts()
+                ->where('Status', 'ACTIVE')
+                ->get();
 
-        return json_decode(json_encode($accounts));
+            return json_decode(json_encode($accounts));
+        }
+        return [];
     }
 }

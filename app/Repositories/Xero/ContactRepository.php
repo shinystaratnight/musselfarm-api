@@ -18,19 +18,23 @@ class ContactRepository
 
     public function getContacts()
     {
-        $this->xero->refreshAccessTokenIfNecessary();
+        $usr = auth()->user()->getAccount();
+        if ($usr->xero_access_token) {
+            $this->xero->refreshAccessTokenIfNecessary();
 
-        $user = auth()->user()->getAccount(); 
+            $user = auth()->user()->getAccount(); 
 
-        $xero = new XeroApp(
-            new AccessToken((array)json_decode($user->xero_access_token)),
-            $user->tenant_id
-        );
+            $xero = new XeroApp(
+                new AccessToken((array)json_decode($user->xero_access_token)),
+                $user->tenant_id
+            );
 
-        $contacts = $xero->contacts()
-            ->where('ContactStatus', 'ACTIVE')
-            ->get();
+            $contacts = $xero->contacts()
+                ->where('ContactStatus', 'ACTIVE')
+                ->get();
 
-        return json_decode(json_encode($contacts));
+            return json_decode(json_encode($contacts));
+        }
+        return [];
     }
 }

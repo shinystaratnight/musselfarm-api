@@ -115,7 +115,8 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                     'rdata' => json_encode($expens),
                 ]);
 
-                if ($expens['budget_type'] == 'a' && $expens['to_xero']) {
+                $acc = auth()->user()->getAccount();
+                if ($expens['budget_type'] == 'a' && $expens['to_xero'] && $acc->xero_access_token) {
                     $this->invoiceRepo->addInvoice($expens);
                 }
 
@@ -276,14 +277,15 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
             $budget = Expenses::find($attr['expenses_id']);
 
-            if ($attr['to_xero']) {
+            $acc = auth()->user()->getAccount();
+            if ($attr['to_xero'] && $acc->xero_access_token) {
                 $this->invoiceRepo->updateInvoice($budget, $attr);
                 $attr['price_actual'] = $attr['value'];
                 $merge = array_merge((array)json_decode($budget['rdata']), $attr);
                 $budget['rdata'] = json_encode($merge);
-                $budget[$attr['data_row']] = $attr['value'];
             }
-            
+
+            $budget[$attr['data_row']] = $attr['value'];
             $budget->save();
 
             return response()->json(['status' => 'Success'], 200);
