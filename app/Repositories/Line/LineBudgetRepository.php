@@ -112,6 +112,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                     'expenses_name' => $expens['expenses_name'],
                     'price_budget' => $expens['price_budget'],
                     'price_actual' => $expens['price_actual'],
+                    'expense_date' => $expens['expense_date'],
                     'rdata' => json_encode($expens),
                 ]);
 
@@ -286,6 +287,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
             }
 
             $budget[$attr['data_row']] = $attr['value'];
+            $budget['expense_date'] = $attr['expense_date'];
             $budget->save();
 
             return response()->json(['status' => 'Success'], 200);

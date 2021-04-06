@@ -38,6 +38,7 @@ class UpdateExpensesPartRequest extends FormRequest
             'account' => 'string|nullable',
             'date' => 'required|numeric',
             'due_date' => 'required|numeric',
+            'expense_date' => 'required|numeric',
             'from' => 'string|nullable',
             'to_xero' => 'required|boolean',
         ];

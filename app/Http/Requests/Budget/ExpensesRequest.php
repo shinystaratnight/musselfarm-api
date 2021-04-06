@@ -39,6 +39,7 @@ class ExpensesRequest extends FormRequest
             'expenses.*.due_date' => 'required|numeric',
             'expenses.*.from' => 'string|nullable',
             'expenses.*.to_xero' => 'required|boolean',
+            'expenses.*.expense_date' => 'required|numeric',
         ];
     }
 

@@ -22,6 +22,7 @@ class ExpensesResource extends JsonResource
             'price_budget' => $this->price_budget,
             'price_actual' => $this->price_actual,
             'rdata' => $this->rdata,
+            'expense_date' => $this->expense_date ? $this->expense_date : strtotime($this->created_at->format('Y-m-d')) . '000',
         ];
     }
 }
