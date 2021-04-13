@@ -87,8 +87,43 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
 
             $user->password = bcrypt($attr['password']);
 
+            $isActive = $user->active;
+            if (!$isActive) {
+                $user->active = true;
+
+                $user->activation_token = '';
+
+                $trialDays = config('services.stripe.stripe_trial');
+                if ($user->coupon == 'coupon1') $trialDays = 30;
+                else if ($user->coupon == 'coupon2') $trialDays = 60;
+                $user->trial_ends_at = now()->addDays($trialDays);
+
+                $user->quantity = 1;
+
+                $account = Account::create([]);
+                $user->account_id = $account->id;
+            }
+
             $user->save();
 
+            if (!$isActive) {
+                // Set Default Farms Util
+                $defaultFarmsUtilData = [
+                    ['name' => 'D-Seed1', 'type' =>'seed'],
+                    ['name' => 'D-Seed2', 'type' =>'seed'],
+                    ['name' => 'D-Seed3', 'type' =>'seed'],
+                    ['name' => 'D-Maintenance1', 'type' =>'maintenance'],
+                    ['name' => 'D-Maintenance2', 'type' =>'maintenance'],
+                    ['name' => 'D-Maintenance3', 'type' =>'maintenance'],
+                ];
+                $farmUtils = array_map(function ($util) {
+                    $util['user_id'] = $user->id;
+                    return $util;
+                }, $defaultFarmsUtilData);
+
+                FarmUtil::insert($farmUtils);
+            }
+            
             $passwordReset->delete();
 
             $user->notify(new PasswordResetSuccess($passwordReset));

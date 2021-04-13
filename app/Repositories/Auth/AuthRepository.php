@@ -73,7 +73,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         } else {
 
-            return response(['message' => 'Account is not active'], 401);
+            return response(['message' => 'Account not activated, please activate account or reset the password to activate it'], 401);
 
         }
     }
