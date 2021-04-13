@@ -18,6 +18,7 @@ class BudgetFarmsLinesResourse extends JsonResource
         return [
             'farm_id' => $this->id,
             'farm_name' => $this->name,
+            'farm_budget' => FarmExpensesResource::collection($this->farm_budgets),
             'lines' => BudgetLinesResourse::collection($this->lines)
         ];
     }

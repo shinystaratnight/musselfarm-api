@@ -143,6 +143,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                     'expenses_name' => $expens['expenses_name'],
                     'price_budget' => $expens['price_budget'],
                     'price_actual' => $expens['price_actual'],
+                    'expense_date' => $expens['expense_date'],
                 ]);
 
             } elseif ($expens['type'] == 'm') {
@@ -152,6 +153,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                     'expenses_name' => $expens['expenses_name'],
                     'price_budget' => $expens['price_budget'],
                     'price_actual' => $expens['price_actual'],
+                    'expense_date' => $expens['expense_date'],
                 ]);
             } else {
 
@@ -285,6 +287,33 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                 $merge = array_merge((array)json_decode($budget['rdata']), $attr);
                 $budget['rdata'] = json_encode($merge);
             }
+
+            $budget[$attr['data_row']] = $attr['value'];
+            $budget['expense_date'] = $attr['expense_date'];
+            $budget->save();
+
+            return response()->json(['status' => 'Success'], 200);
+
+        } catch (Exception $e) {
+
+            return response()->json(['status' => 'Error', 'message' => 'Row does not updated'], 400);
+
+        }
+    }
+
+    public function updateFarmExpenses($attr)
+    {
+        try {
+
+            $budget = FarmExpenses::find($attr['expenses_id']);
+
+            // $acc = auth()->user()->getAccount();
+            // if ($attr['to_xero'] && $acc->xero_access_token) {
+            //     $this->invoiceRepo->updateInvoice($budget, $attr);
+            //     $attr['price_actual'] = $attr['value'];
+            //     $merge = array_merge((array)json_decode($budget['rdata']), $attr);
+            //     $budget['rdata'] = json_encode($merge);
+            // }
 
             $budget[$attr['data_row']] = $attr['value'];
             $budget['expense_date'] = $attr['expense_date'];

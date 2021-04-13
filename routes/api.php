@@ -122,7 +122,8 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::get('farms-all', [FarmController::class, 'allFarms']);
 
         // Add new farm expenses route
-        // Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);
+        Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);
+        Route::post('budgets/update-farm-expenses-part', [LineBudgetController::class, 'updateFarmExpenses']);
 
         // Line routes
         Route::group(['prefix' => 'line'], function() {

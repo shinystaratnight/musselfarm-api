@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Budget;
 
 use App\Http\Requests\Budget\ExpensesRequest;
+use App\Http\Requests\Budget\FarmExpensesRequest;
+use App\Http\Requests\Budget\UpdateFarmExpensesPartRequest;
 use App\Http\Requests\Budget\MaintenanceCostRequest;
 use App\Http\Requests\Budget\SeedingCostRequest;
 use App\Http\Requests\Budget\UpdateBudgetPartRequest;
@@ -58,6 +60,13 @@ class LineBudgetController extends Controller
         return $this->budgetRepo->newExpenses($attr);
     }
 
+    public function addFarmExpenses(FarmExpensesRequest $request)
+    {
+        $attr = $request->validated();
+
+        return $this->budgetRepo->newFarmExpenses($attr);
+    }
+
     public function getFarmBudget(YearlyBudgetRequest $request)
     {
         $attr = $request->validated();
@@ -77,5 +86,12 @@ class LineBudgetController extends Controller
         $attr = $request->validated();
 
         return $this->budgetRepo->updateExpenses($attr);
+    }
+
+    public function updateFarmExpenses(UpdateFarmExpensesPartRequest $request)
+    {
+        $attr = $request->validated();
+
+        return $this->budgetRepo->updateFarmExpenses($attr);
     }
 }

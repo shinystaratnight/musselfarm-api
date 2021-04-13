@@ -26,10 +26,10 @@ class Farm extends Model
         return $this->hasMany(Line::class);
     }
 
-    // public function farm_budgets()
-    // {
-    //     return $this->hasMany(FarmExpenses::class);
-    // }
+    public function farm_budgets()
+    {
+        return $this->hasMany(FarmExpenses::class);
+    }
 
     public function lines_budgets()
     {
