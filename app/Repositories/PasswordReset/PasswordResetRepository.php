@@ -108,6 +108,7 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
 
             $user->save();
 
+            $user = User::where('email', $passwordReset->email)->first();
             if (!$isActive) {
                 // Set Default Farms Util
                 $defaultFarmsUtilData = [
@@ -128,6 +129,7 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
             
             $passwordReset->delete();
 
+            $user->notify(new SignupActivate($user));
             $user->notify(new PasswordResetSuccess($passwordReset));
 
             return response()->json($user);
