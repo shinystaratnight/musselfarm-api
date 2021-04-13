@@ -9,6 +9,7 @@ use App\Models\FarmUtil;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Notifications\SignupActivate;
 use App\Notifications\PasswordResetRequest;
 use App\Notifications\PasswordResetSuccess;
 
@@ -89,7 +90,7 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
 
             $user->password = bcrypt($attr['password']);
 
-            if ($user->active) {
+            if (!$user->active) {
                 $user->active = true;
                 $user->activation_token = '';
 
