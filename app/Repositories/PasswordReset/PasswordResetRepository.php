@@ -113,7 +113,7 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
                     ['name' => 'D-Maintenance2', 'type' =>'maintenance'],
                     ['name' => 'D-Maintenance3', 'type' =>'maintenance'],
                 ];
-                $farmUtils = array_map(function ($util) {
+                $farmUtils = array_map(function ($util) use ($user) {
                     $util['user_id'] = $user->id;
                     return $util;
                 }, $defaultFarmsUtilData);
