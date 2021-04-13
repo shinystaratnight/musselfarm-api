@@ -89,10 +89,8 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
 
             $user->password = bcrypt($attr['password']);
 
-            $isActive = $user->active;
-            if (!$isActive) {
+            if ($user->active) {
                 $user->active = true;
-
                 $user->activation_token = '';
 
                 $trialDays = config('services.stripe.stripe_trial');
@@ -104,12 +102,7 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
 
                 $account = Account::create([]);
                 $user->account_id = $account->id;
-            }
 
-            $user->save();
-
-            $user = User::where('email', $passwordReset->email)->first();
-            if (!$isActive) {
                 // Set Default Farms Util
                 $defaultFarmsUtilData = [
                     ['name' => 'D-Seed1', 'type' =>'seed'],
@@ -126,6 +119,8 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
 
                 FarmUtil::insert($farmUtils);
             }
+
+            $user->save();
             
             $passwordReset->delete();
 
