@@ -125,7 +125,6 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
             
             $passwordReset->delete();
 
-            $user->notify(new SignupActivate($user));
             $user->notify(new PasswordResetSuccess($passwordReset));
 
             return response()->json($user);
