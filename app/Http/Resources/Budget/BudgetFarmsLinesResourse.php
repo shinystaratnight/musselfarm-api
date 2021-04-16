@@ -5,6 +5,8 @@ namespace App\Http\Resources\Budget;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\Budget\BudgetLinesResourse;
 
+use App\Repositories\Line\LineBudgetRepository as Budget;
+
 class BudgetFarmsLinesResourse extends JsonResource
 {
     /**
@@ -15,10 +17,15 @@ class BudgetFarmsLinesResourse extends JsonResource
      */
     public function toArray($request)
     {
+
+        $year = -1;
+        $lines = LineBudgetResource::collection($this->lines);
+        $farm_expense = Budget::farmExpenseInfo($year, $this->farm_budgets, $this->lines);
+
         return [
             'farm_id' => $this->id,
             'farm_name' => $this->name,
-            'farm_budget' => FarmExpensesResource::collection($this->farm_budgets),
+            'farm_expense_info' => $farm_expense['info'],
             'lines' => BudgetLinesResourse::collection($this->lines)
         ];
     }

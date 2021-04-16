@@ -89,7 +89,10 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
         $budgets = Farm::whereHas('users', function($q) use ($u) {
                             $q->where('user_id', '=', $u);
                         })->with('lines', function($q) {
-                            $q->with('overview_budgets');
+                            $q->with(['overview_budgets' => function($r) {
+                                $r->orderByRaw("CASE WHEN end_budget = 0 THEN 0 ELSE 1 END ASC")
+                                    ->orderBy('start_budget', 'DESC');
+                            }]);
                         })->get();
 //->with(['overview_budgets' => function($r) {
 //                                $r->orderBy('start_budget', 'DESC');
@@ -326,6 +329,71 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
             return response()->json(['status' => 'Error', 'message' => 'Row does not updated'], 400);
 
         }
+    }
+
+    public static function farmExpenseInfo($year, $farm_budgets, $lines)
+    {
+        $year_budget = [];
+        $actual_seeding_cost = 0;
+        $actual_maintenance_cost = 0;
+        $budget_seeding_cost = 0;
+        $budget_maintenance_cost = 0;
+
+        foreach($farm_budgets as $budget)
+        {
+            $expense_date = $budget->expense_date ? $budget->expense_date : strtotime($budget->created_at->format('Y-m-d')) . '000';
+            if ( $year == -1 || (
+                    $year != -1 &&
+                    (strtotime($year . '-01-01') . '000' )<= $expense_date &&
+                    (strtotime($year . '-12-31') . '000' )> $expense_date
+                )
+            ) {
+                $budget->expense_date = $expense_date;
+                array_push($year_budget, $budget);
+
+                if($budget->type == 's')
+                {
+                    $actual_seeding_cost += $budget->price_actual;
+                    $budget_seeding_cost += $budget->price_budget;
+                }
+                if($budget->type == 'm')
+                {
+                    $actual_maintenance_cost += $budget->price_actual;
+                    $budget_maintenance_cost += $budget->price_budget;
+                }
+            }
+        }
+
+        foreach($lines as $line)
+        {
+            if (count($line->budgets))
+            {
+                $expenses = $line->budgets[0]->expenses;
+                foreach($expenses as $budget)
+                {
+                    if($budget->type == 's')
+                    {
+                        $actual_seeding_cost += $budget->price_actual;
+                        $budget_seeding_cost += $budget->price_budget;
+                    }
+                    if($budget->type == 'm')
+                    {
+                        $actual_maintenance_cost += $budget->price_actual;
+                        $budget_maintenance_cost += $budget->price_budget;
+                    }
+                }
+            }
+        }
+
+        return [
+            'info' => [
+                'actual_seeding_cost' => $actual_seeding_cost,
+                'actual_maintenance_cost' => $actual_maintenance_cost,
+                'budget_seeding_cost' => $budget_seeding_cost,
+                'budget_maintenance_cost' => $budget_maintenance_cost,
+            ],
+            'expenses' => $year_budget,
+        ];
     }
 }
 

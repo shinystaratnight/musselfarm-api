@@ -4,6 +4,8 @@ namespace App\Http\Resources\Budget;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+use App\Repositories\Line\LineBudgetRepository as Budget;
+
 class FarmBudgetResource extends JsonResource
 {
     /**
@@ -15,29 +17,15 @@ class FarmBudgetResource extends JsonResource
     public function toArray($request)
     {
         $year = $request->input('year');
-        $year_budget = [];
-        foreach($this->farm_budgets as $budget) {
-            if (
-                $budget->expense_date &&
-                (strtotime($year . '-01-01') . '000' )<= $budget->expense_date &&
-                (strtotime($year . '-12-31') . '000' )> $budget->expense_date
-            ) {
-                $budget->expense_date = $budget->expense_date ? $budget->expense_date : strtotime($budget->created_at->format('Y-m-d')) . '000';
-                array_push($year_budget, $budget);
-            } else if(
-                !$budget->expense_date &&
-                strtotime($year . '-01-01') <= strtotime($budget->created_at) &&
-                strtotime($year . '-12-31') > strtotime($budget->created_at)
-            ) {
-                $budget->expense_date = $budget->expense_date ? $budget->expense_date : strtotime($budget->created_at->format('Y-m-d')) . '000';
-                array_push($year_budget, $budget);
-            }
-        }
+        $lines = LineBudgetResource::collection($this->lines);
+
+        $farm_expense = Budget::farmExpenseInfo($year, $this->farm_budgets, $this->lines);
         return [
             'farm_id' => $this->id,
             'farm_name' => $this->name,
-            'farm_budget' => $year_budget,
-            'lines' => LineBudgetResource::collection($this->lines)
+            'farm_expense_info' => $farm_expense['info'],
+            'farm_expenses' => $farm_expense['expenses'],
+            'lines' => $lines,
         ];
     }
 }
