@@ -19,6 +19,7 @@ use \App\Http\Controllers\Farm\HarvestGroupController;
 use \App\Http\Controllers\Budget\LineBudgetController;
 use \App\Http\Controllers\Budget\BudgetLogController;
 use App\Http\Controllers\Overview\OverviewController;
+use App\Http\Controllers\Task\TaskController;
 use App\Http\Controllers\Xero\XeroDataController;
 use App\Http\Controllers\WebhookController;
 use \App\Http\Controllers\UtilController;
@@ -176,6 +177,12 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::resource('utils', UtilController::class);
     });
     
+    //Task routes
+    Route::group(['prefix' => 'task'], function() {
+        Route::resource('tasks', TaskController::class);
+        Route::post('remove-completed-tasks', [TaskController::class, 'removeCompletedTasks']);
+    });
+
     //Season routes
     Route::group(['prefix' => 'season'], function() {
         Route::resource('seasons', SeasonController::class);
