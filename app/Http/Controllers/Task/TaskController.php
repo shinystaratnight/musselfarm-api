@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Task;
 
 use App\Models\Task;
+use App\Models\Inviting;
+use App\Models\User;
 use App\Http\Requests\Task\TaskRequest;
 use App\Http\Controllers\Controller;
 
@@ -10,8 +12,25 @@ class TaskController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $tasks = Task::where('owner_id', $user->id)->get();
+        $tasks = [];
+        if(auth()->user()->roles[0]['name'] === 'owner') {
+            $users = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get();
+
+            $userIds = [ auth()->user()->id ];
+            foreach($users as $user) {
+                $userIds[] = $user->invited_user_id;
+            }
+
+            $tasks = Task::whereIn('creator_id', $userIds)->get();
+
+        } else {
+            $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
+
+            $o = User::where('id', $owner['inviting_user_id'])->first();
+
+            $tasks = Task::where('creator_id', auth()->user()->id)
+                            ->orWhere('charger_id', auth()->user()->id)->get();
+        }
 
         return response()->json([
             'status' => 'success',
@@ -24,8 +43,9 @@ class TaskController extends Controller
         $attr = $request->validated();
 
         $task = Task::create([
-            'owner_id' => auth()->user()->id,
+            'creator_id' => auth()->user()->id,
             'farm_id' => $attr['farm_id'],
+            'charger_id' => $attr['charger_id'],
             'line_id' => $attr['line_id'],
             'due_date' => $attr['due_date'],
         ]);
@@ -41,6 +61,7 @@ class TaskController extends Controller
 
         $task->farm_id = $attr['farm_id'];
         $task->line_id = $attr['line_id'];
+        $task->charger_id = $attr['charger_id'];
         $task->due_date = $attr['due_date'];
         $task->active = $attr['active'];
 

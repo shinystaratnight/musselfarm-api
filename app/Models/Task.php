@@ -13,7 +13,8 @@ class Task extends Model
     protected $fillable = ['farm_id',
                            'line_id',
                            'due_date',
-                           'owner_id',
+                           'creator_id',
+                           'charger_id',
                            'active'];
 
 }

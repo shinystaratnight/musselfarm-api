@@ -31,6 +31,7 @@ class TaskRequest extends FormRequest
             'farm_id' => 'required|numeric',
             'line_id' => 'required|numeric',
             'due_date' => 'required|numeric',
+            'charger_id' => 'numeric',
             'active' => 'numeric',
         ];
     }

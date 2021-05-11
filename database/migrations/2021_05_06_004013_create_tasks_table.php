@@ -18,7 +18,8 @@ class CreateTasksTable extends Migration
             $table->unsignedBigInteger('farm_id');
             $table->unsignedBigInteger('line_id');
             $table->string('due_date')->default(0);
-            $table->unsignedBigInteger('owner_id');
+            $table->unsignedBigInteger('creator_id');
+            $table->unsignedBigInteger('charger_id');
             $table->unsignedInteger('active')->default(0);
             $table->timestamps();
         });
