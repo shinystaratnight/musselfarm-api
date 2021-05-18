@@ -17,6 +17,8 @@ class CreateTasksTable extends Migration
             $table->id();
             $table->unsignedBigInteger('farm_id');
             $table->unsignedBigInteger('line_id');
+            $table->string('title')->nullable();
+            $table->longText('content')->nullable();
             $table->string('due_date')->default(0);
             $table->unsignedBigInteger('creator_id');
             $table->unsignedBigInteger('charger_id');

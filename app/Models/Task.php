@@ -12,6 +12,8 @@ class Task extends Model
 
     protected $fillable = ['farm_id',
                            'line_id',
+                           'title',
+                           'content',
                            'due_date',
                            'creator_id',
                            'charger_id',

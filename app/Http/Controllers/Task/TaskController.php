@@ -45,6 +45,8 @@ class TaskController extends Controller
         $task = Task::create([
             'creator_id' => auth()->user()->id,
             'farm_id' => $attr['farm_id'],
+            'title' => $attr['title'],
+            'content' => $attr['content'],
             'charger_id' => $attr['charger_id'],
             'line_id' => $attr['line_id'],
             'due_date' => $attr['due_date'],
@@ -62,6 +64,8 @@ class TaskController extends Controller
         $task->farm_id = $attr['farm_id'];
         $task->line_id = $attr['line_id'];
         $task->charger_id = $attr['charger_id'];
+        $task->title = $attr['title'];
+        $task->content = $attr['content'];
         $task->due_date = $attr['due_date'];
         $task->active = $attr['active'];
 
