@@ -31,7 +31,7 @@ class TaskRequest extends FormRequest
             'farm_id' => 'required|numeric',
             'line_id' => 'required|numeric',
             'title' => 'required|string',
-            'content' => 'string',
+            'content' => 'string|nullable',
             'due_date' => 'required|numeric',
             'charger_id' => 'numeric',
             'active' => 'numeric',
