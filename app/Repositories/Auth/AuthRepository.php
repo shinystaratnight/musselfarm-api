@@ -280,8 +280,7 @@ class AuthRepository implements AuthRepositoryInterface
                     'grant_type' => 'refresh_token',
                     'refresh_token' => $refresh_token,
                     'client_id' => $oClient->id,
-                    // 'client_secret' => $oClient->secret,
-                    'client_secret' => '1WaRtPmD7dN8Pujxz7sYSHa9dIBPTipqgymfJElD',
+                    'client_secret' => $oClient->secret,
                     'scope' => '',
                 ],
             ]);

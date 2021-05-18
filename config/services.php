@@ -43,7 +43,7 @@ return [
     ],
 
     'passport' => [
-        'token_expire_in' => env('PASSPORT_TOKEN_EXPIRE_IN', 15),
-        'refresh_token_expire_in' => env('PASSPORT_REFRESH_TOKEN_EXPIRE_IN', 1)
+        'token_expire_in' => env('PASSPORT_TOKEN_EXPIRE_IN', 20),
+        'refresh_token_expire_in' => env('PASSPORT_REFRESH_TOKEN_EXPIRE_IN', 14)
     ]
 ];
