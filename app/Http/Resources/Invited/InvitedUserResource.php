@@ -14,12 +14,19 @@ class InvitedUserResource extends JsonResource
      */
     public function toArray($request)
     {
+        
         return [
             'user_id' => !isset($this->users->id) ? $this->id : $this->users->id,
             'email' => !isset($this->users->email) ? $this->email : $this->users->email,
             'name' => !isset($this->profile->name) ? !isset($this->users->profile->name) ? null : $this->users->profile->name : $this->profile->name,
             'status' => !isset($this->status) ? "active" : $this->status,
-            'role' => !isset($this->roles[0]['name']) ? !isset($this->users->roles[0]['name']) ? null : $this->users->roles[0]['name'] : $this->roles[0]['name']
+            'role' => !isset($this->roles[0]['name']) ? !isset($this->users->roles[0]['name']) ? null : $this->users->roles[0]['name'] : $this->roles[0]['name'],
+            'farms' => $this->farms ? array_map(function($farm) {
+                return $farm['id'];
+            }, (array)$this->farms->toArray()) : [],
+            'lines' => $this->lines ? array_map(function($line) {
+                return $line['id'];
+            }, (array)$this->lines->toArray()) : [],
         ];
     }
 }

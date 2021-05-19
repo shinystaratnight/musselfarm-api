@@ -38,21 +38,22 @@ class UserController extends Controller
     public function index()
     {
         if(auth()->user()->roles[0]['name'] === 'owner') {
-            $users = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get();
+            $invites = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get()->toArray();
 
-            $o = User::where('id', auth()->user()->id)->first();
-
-            $users[] = $o;
+            $users = User::whereIn('id', array_map(function($invite) {
+                return $invite['invited_user_id'];
+            }, $invites))->orWhere('id', auth()->user()->id)->get();
 
             return InvitedUserResource::collection($users);
         } else {
             $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
 
-            $o = User::where('id', $owner['inviting_user_id'])->first();
+            $invites = Inviting::with('users')->where('inviting_user_id', $owner['inviting_user_id'])->get()->toArray();
+            $ids = array_map(function($invite) {
+                return $invite['invited_user_id'];
+            }, $invites);
 
-            $users = Inviting::with('users')->where('inviting_user_id', $owner['inviting_user_id'])->get();
-
-            $users[] = $o;
+            $users = User::whereIn('id', $ids)->orWhere('id', $owner['inviting_user_id'])->get();
 
             return InvitedUserResource::collection($users);
         }
