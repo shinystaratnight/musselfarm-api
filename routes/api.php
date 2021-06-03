@@ -125,6 +125,7 @@ Route::group(['middleware' => 'auth:api'], function ()
         // Add new farm expenses route
         Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);
         Route::post('budgets/update-farm-expenses-part', [LineBudgetController::class, 'updateFarmExpenses']);
+        Route::post('budgets/import-farm-expenses-from-excel', [LineBudgetController::class, 'importFarmExpensesFromExcel']);
 
         // Line routes
         Route::group(['prefix' => 'line'], function() {
@@ -132,6 +133,9 @@ Route::group(['middleware' => 'auth:api'], function ()
 
             // Add new maintenance expenses route
             Route::post('budgets/add-expenses', [LineBudgetController::class, 'addExpenses']);
+
+            // Import budget from excel
+            Route::post('budgets/import-line-expenses-from-excel', [LineBudgetController::class, 'importLineExpensesFromExcel']);
 
             // Update budget part of budget route
             Route::post('budgets/update-budget-part', [LineBudgetController::class,'updateBudget'])->middleware('budget_log');

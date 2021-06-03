@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Budget;
 
 use App\Http\Requests\Budget\ExpensesRequest;
 use App\Http\Requests\Budget\FarmExpensesRequest;
+use App\Http\Requests\Budget\FarmImportExpensesRequest;
+use App\Http\Requests\Budget\LineImportExpensesRequest;
 use App\Http\Requests\Budget\UpdateFarmExpensesPartRequest;
 use App\Http\Requests\Budget\MaintenanceCostRequest;
 use App\Http\Requests\Budget\SeedingCostRequest;
@@ -60,11 +62,25 @@ class LineBudgetController extends Controller
         return $this->budgetRepo->newExpenses($attr);
     }
 
+    public function importLineExpensesFromExcel(LineImportExpensesRequest $request)
+    {
+        $attr = $request->validated();
+
+        return $this->budgetRepo->importExcelLineExpenses($attr);
+    }
+
     public function addFarmExpenses(FarmExpensesRequest $request)
     {
         $attr = $request->validated();
 
         return $this->budgetRepo->newFarmExpenses($attr);
+    }
+
+    public function importFarmExpensesFromExcel(FarmImportExpensesRequest $request)
+    {
+        $attr = $request->validated();
+
+        return $this->budgetRepo->importExcelFarmExpenses($attr);
     }
 
     public function getFarmBudget(YearlyBudgetRequest $request)

@@ -13,6 +13,8 @@ use App\Models\LineBudget;
 use App\Http\Resources\Budget\BudgetFarmsLinesResourse;
 use App\Http\Resources\Budget\BudgetFarmsLinesByPeriodResource;
 use App\Repositories\Xero\InvoiceRepository;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
 
 class LineBudgetRepository implements LineBudgetRepositoryInterface {
@@ -134,6 +136,70 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
         return response()->json(['status' => 'Success'], 200);
     }
 
+    public function importExcelLineExpenses($attr)
+    {
+        $file = $attr['file'];
+        $farmId = $attr['line_budget_id'];
+        $expensetype = $attr['expenseType'];
+        $destinationPath = 'uploads';
+
+        $name = Carbon::now()->timestamp;
+        $fileName = $name . '.' . $file->getClientOriginalExtension();
+        $file->move($destinationPath, $fileName);
+
+        $filePath = $destinationPath . '/' . $fileName;
+
+        $inputFileType = \PhpOffice\PhpSpreadsheet\IOFactory::identify($filePath);
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($inputFileType);
+        $spreadsheet = $reader->load($filePath);
+
+        $expenseSheet = $spreadsheet->getSheet(0);
+        $data = [];
+        if (
+            strtolower($expenseSheet->getCell('A1')->getValue()) == 'name' &&
+            strtolower($expenseSheet->getCell('B1')->getValue()) == 'type' &&
+            strtolower($expenseSheet->getCell('C1')->getValue()) == 'budget' &&
+            strtolower($expenseSheet->getCell('D1')->getValue()) == 'date'
+        ) {
+            $i = 1;
+            while(true) {
+                $i++;
+                $na = $expenseSheet->getCell('A'.$i)->getValue();
+                $ty = $expenseSheet->getCell('B'.$i)->getValue();
+                $bd = $expenseSheet->getCell('C'.$i)->getValue();
+                $dt = $expenseSheet->getCell('D'.$i)->getValue();
+                if ($na == '') break;
+                $dat['line_budget_id'] = $farmId;
+                $dat['expenses_name'] = $na;
+                $dat['type'] = strtolower($ty) == 's' ? 's' : 'm';
+
+                $od = Carbon::create(1900, 1, 1, 0, 0, 0);
+                $dat['expense_date'] = $od->add(intval($dt) - 2, 'day')->timestamp . '000';
+
+                $dat['price_budget'] = 0;
+                $dat['price_actual'] = 0;
+                if ($expensetype == 'a') $dat['price_actual'] = floatval($bd);
+                else if ($expensetype == 'b') $dat['price_budget'] = floatval($bd);
+
+                $dat['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
+                $dat['updated_at'] = Carbon::now()->format('Y-m-d H:i:s');
+
+                $dat_tmp = $dat;
+                $dat_tmp['account'] = '';
+                $dat_tmp['budget_type'] = $expensetype;
+                $dat_tmp['date'] = 0;
+                $dat_tmp['from'] = 0;
+                $dat_tmp['to_xero'] = false;
+                $dat['rdata'] = json_encode($dat_tmp);
+                $data[] = $dat;
+            }
+            Expenses::insert($data);
+            return response()->json(['status' => 'Success', 'count' => count($data)], 200);
+        } else {
+            return response()->json(['status' => 'Fail', 'message' => 'Not correct format'], 200);
+        }
+    }
+
     public function newFarmExpenses($attr)
     {
         foreach($attr['expenses'] as $expens) {
@@ -166,6 +232,62 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
         }
 
         return response()->json(['status' => 'Success'], 200);
+    }
+
+    public function importExcelFarmExpenses($attr)
+    {
+        $file = $attr['file'];
+        $farmId = $attr['farm_id'];
+        $expensetype = $attr['expenseType'];
+        $destinationPath = 'uploads';
+
+        $name = Carbon::now()->timestamp;
+        $fileName = $name . '.' . $file->getClientOriginalExtension();
+        $file->move($destinationPath, $fileName);
+
+        $filePath = $destinationPath . '/' . $fileName;
+
+        $inputFileType = \PhpOffice\PhpSpreadsheet\IOFactory::identify($filePath);
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($inputFileType);
+        $spreadsheet = $reader->load($filePath);
+
+        $expenseSheet = $spreadsheet->getSheet(0);
+        $data = [];
+        if (
+            strtolower($expenseSheet->getCell('A1')->getValue()) == 'name' &&
+            strtolower($expenseSheet->getCell('B1')->getValue()) == 'type' &&
+            strtolower($expenseSheet->getCell('C1')->getValue()) == 'budget' &&
+            strtolower($expenseSheet->getCell('D1')->getValue()) == 'date'
+        ) {
+            $i = 1;
+            while(true) {
+                $i++;
+                $na = $expenseSheet->getCell('A'.$i)->getValue();
+                $ty = $expenseSheet->getCell('B'.$i)->getValue();
+                $bd = $expenseSheet->getCell('C'.$i)->getValue();
+                $dt = $expenseSheet->getCell('D'.$i)->getValue();
+                if ($na == '') break;
+                $dat['farm_id'] = $farmId;
+                $dat['expenses_name'] = $na;
+                $dat['type'] = strtolower($ty) == 's' ? 's' : 'm';
+
+                $od = Carbon::create(1900, 1, 1, 0, 0, 0);
+                $dat['expense_date'] = $od->add(intval($dt) - 2, 'day')->timestamp . '000';
+
+                $dat['price_budget'] = 0;
+                $dat['price_actual'] = 0;
+                if ($expensetype == 'a') $dat['price_actual'] = floatval($bd);
+                else if ($expensetype == 'b') $dat['price_budget'] = floatval($bd);
+
+                $dat['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
+                $dat['updated_at'] = Carbon::now()->format('Y-m-d H:i:s');
+                $data[] = $dat;
+            }
+            FarmExpenses::insert($data);
+            return response()->json(['status' => 'Success', 'count' => count($data)], 200);
+        } else {
+            return response()->json(['status' => 'Fail', 'message' => 'Not correct format'], 200);
+        }
     }
 
     public function getBudgetByFarmOrLine($attr)

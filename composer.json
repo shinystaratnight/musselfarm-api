@@ -24,6 +24,7 @@
         "laravel/tinker": "^2.5",
         "laraveldaily/laravel-invoices": "^2.0",
         "nesbot/carbon": "^2.41",
+        "phpoffice/phpspreadsheet": "^1.18",
         "spatie/laravel-permission": "^3.17",
         "spatie/laravel-stripe-webhooks": "^2.3"
     },
