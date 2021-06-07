@@ -171,7 +171,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                 if ($na == '') break;
                 $dat['line_budget_id'] = $farmId;
                 $dat['expenses_name'] = $na;
-                $dat['type'] = strtolower($ty) == 's' ? 's' : 'm';
+                $dat['type'] = strtolower($ty) == 'seed' ? 's' : 'm';
 
                 $od = Carbon::create(1900, 1, 1, 0, 0, 0);
                 $dat['expense_date'] = $od->add(intval($dt) - 2, 'day')->timestamp . '000';
@@ -269,7 +269,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                 if ($na == '') break;
                 $dat['farm_id'] = $farmId;
                 $dat['expenses_name'] = $na;
-                $dat['type'] = strtolower($ty) == 's' ? 's' : 'm';
+                $dat['type'] = strtolower($ty) == 'seed' ? 's' : 'm';
 
                 $od = Carbon::create(1900, 1, 1, 0, 0, 0);
                 $dat['expense_date'] = $od->add(intval($dt) - 2, 'day')->timestamp . '000';
