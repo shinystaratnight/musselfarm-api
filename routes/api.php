@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Automation\AutomationController;
 use App\Http\Controllers\Subscription\SubscriptionController;
 use App\Http\Controllers\Subscription\PlanController;
 use \App\Http\Controllers\Subscription\InvoiceController;
@@ -97,6 +98,11 @@ Route::group(['middleware' => 'auth:api'], function ()
 
     // User logout route
     Route::get('logout', [AuthController::class, 'logout']);
+
+    // Automations routes
+    Route::group(['prefix' => 'automation'], function() {
+        Route::resource('automations', AutomationController::class);
+    });
 
     // Subscription routes
     Route::group(['prefix' => 'subscription'], function() {

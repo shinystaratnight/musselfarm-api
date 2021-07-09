@@ -5,6 +5,8 @@ namespace App\Repositories\Line;
 use App\Models\Assessment;
 use App\Models\ChartData;
 use App\Models\HarvestGroup;
+use App\Models\Automation;
+use App\Models\Task;
 use App\Http\Resources\Assessment\AssessmentResource;
 use App\Models\Line;
 use Carbon\Carbon;
@@ -37,6 +39,32 @@ class AssessmentRepository implements AssessmentRepositoryInterface
                                   'planned_date_harvest' => $assessment->planned_date_harvest,
                                   'color' => $assessment->color]);
 
+            $harvest = HarvestGroup::where('id', $attr['harvest_group_id'])->first();
+            $currentLine = Line::find($harvest->line_id);
+            $farm_id = $currentLine->farm_id;
+
+            // automation task start
+            $automations = Automation::where([
+                'creator_id' => auth()->user()->id,
+                'condition' => 'Assessment',
+            ])->get();
+
+            foreach($automations as $automation) {
+                
+                $due_date = $due_date = Carbon::now()->addDays($automation->time)->timestamp * 1000;
+
+                $task = Task::create([
+                    'creator_id' => auth()->user()->id,
+                    'farm_id' => $farm_id,
+                    'title' => $automation->title,
+                    'content' => $automation->description,
+                    'charger_id' => 0,
+                    'line_id' => $harvest->line_id,
+                    'due_date' => $due_date,
+                ]);
+            }
+            // automation task end
+            
             return response()->json(['status' => 'Success'], 201);
         }
     }

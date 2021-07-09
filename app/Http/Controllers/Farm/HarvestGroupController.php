@@ -7,6 +7,8 @@ use App\Models\ChartData;
 use App\Models\Farm;
 use App\Models\HarvestGroup;
 use App\Models\Line;
+use App\Models\Task;
+use App\Models\Automation;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Harvest\HarvestCompleteRequest;
 use App\Http\Requests\Harvest\CreateHarvestGroupRequest;
@@ -72,6 +74,29 @@ class HarvestGroupController extends Controller
         $requestHarvestDate = Carbon::createFromTimestamp($harvest->planned_date_harvest)->year;
 
         $currentYear = Carbon::now()->year;
+
+        // automation task start
+        $automations = Automation::where([
+            'creator_id' => auth()->user()->id,
+            'condition' => 'Harvesting',
+            'action' => 'Completed',
+        ])->get();
+
+        foreach($automations as $automation) {
+            
+            $due_date = Carbon::createFromTimestamp($attr['harvest_complete_date'])->addDays($automation->time)->timestamp * 1000;
+
+            $task = Task::create([
+                'creator_id' => auth()->user()->id,
+                'farm_id' => $currentLine->farm_id,
+                'title' => $automation->title,
+                'content' => $automation->description,
+                'charger_id' => 0,
+                'line_id' => $harvest->line_id,
+                'due_date' => $due_date,
+            ]);
+        }
+        // automation task end
 
         if($currentYear == $requestHarvestDate) {
 
