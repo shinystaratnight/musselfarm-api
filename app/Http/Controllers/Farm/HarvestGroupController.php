@@ -8,6 +8,7 @@ use App\Models\Farm;
 use App\Models\HarvestGroup;
 use App\Models\Line;
 use App\Models\Task;
+use App\Models\User;
 use App\Models\Automation;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Harvest\HarvestCompleteRequest;
@@ -76,25 +77,31 @@ class HarvestGroupController extends Controller
         $currentYear = Carbon::now()->year;
 
         // automation task start
+        $profileUserIds = auth()->user()->getProfileUserIds();
         $automations = Automation::where([
-            'creator_id' => auth()->user()->id,
             'condition' => 'Harvesting',
             'action' => 'Completed',
-        ])->get();
+        ])->whereIn('creator_id', $profileUserIds)->get();
 
-        foreach($automations as $automation) {
+        foreach($automations as $automation) {   
             
             $due_date = Carbon::createFromTimestamp($attr['harvest_complete_date'])->addDays($automation->time)->timestamp * 1000;
 
-            $task = Task::create([
-                'creator_id' => auth()->user()->id,
-                'farm_id' => $currentLine->farm_id,
-                'title' => $automation->title,
-                'content' => $automation->description,
-                'charger_id' => 0,
-                'line_id' => $harvest->line_id,
-                'due_date' => $due_date,
-            ]);
+            $access = User::find($automation->creator_id)->checkUserFarmAccess($harvest->line_id);
+            if ($automation->charger_id && $access) {
+                $access = User::find($automation->charger_id)->checkUserFarmAccess($harvest->line_id);
+            }
+            if ($access) {
+                $task = Task::create([
+                    'creator_id' => $automation->creator_id,
+                    'farm_id' => $currentLine->farm_id,
+                    'title' => $automation->title,
+                    'content' => $automation->description,
+                    'charger_id' => $automation->charger_id ? $automation->charger_id : 0,
+                    'line_id' => $harvest->line_id,
+                    'due_date' => $due_date,
+                ]);
+            }
         }
         // automation task end
 

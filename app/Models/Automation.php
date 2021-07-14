@@ -15,6 +15,7 @@ class Automation extends Model
                             'time',
                             'title',
                             'description',
-                            'creator_id'];
+                            'creator_id',
+                            'charger_id'];
 
 }

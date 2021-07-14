@@ -5,6 +5,7 @@ namespace App\Repositories\Harvest;
 use App\Models\ChartData;
 use App\Models\HarvestGroup;
 use App\Models\Line;
+use App\Models\User;
 use App\Models\Task;
 use App\Models\Automation;
 use App\Models\LineBudget;
@@ -34,9 +35,9 @@ class HarvestRepository implements HarvestRepositoryInterface
                 'submersion' => $attr['submersion'],
             ]);
 
-            $automations = Automation::where([
-                'creator_id' => auth()->user()->id,
-            ])->get();
+            // automation task start
+            $profileUserIds = auth()->user()->getProfileUserIds();
+            $automations = Automation::whereIn('creator_id', $profileUserIds)->get();
 
             $currentLine = Line::find($attr['line_id']);
             foreach($automations as $automation) {
@@ -56,24 +57,32 @@ class HarvestRepository implements HarvestRepositoryInterface
                     }
                 }
 
+                $access = User::find($automation->creator_id)->checkUserFarmAccess($attr['line_id']);
+                if ($automation->charger_id && $access) {
+                    $access = User::find($automation->charger_id)->checkUserFarmAccess($attr['line_id']);
+                }
+            
                 if (
                     $automation->condition == 'Seeding' || (
                     $automation->condition == 'Harvesting' && (
                         $type == 'Created' || $type == 'Upcoming'
                     ))
                 ) {
-                    $task = Task::create([
-                        'creator_id' => auth()->user()->id,
-                        'farm_id' => $currentLine->farm_id,
-                        'title' => $automation->title,
-                        'content' => $automation->description,
-                        'charger_id' => 0,
-                        'line_id' => $attr['line_id'],
-                        'due_date' => $due_date,
-                    ]);
+                    if ($access) {
+                        $task = Task::create([
+                            'creator_id' => auth()->user()->id,
+                            'farm_id' => $currentLine->farm_id,
+                            'title' => $automation->title,
+                            'content' => $automation->description,
+                            'charger_id' => $automation->charger_id ? $automation->charger_id : 0,
+                            'line_id' => $attr['line_id'],
+                            'due_date' => $due_date,
+                        ]);
+                    }
                 }
             }
-            return response()->json(['status' => 'Success', 'ab' => $automations], 200);
+            // automation task end
+            return response()->json(['status' => 'Success'], 200);
 
         } else {
 

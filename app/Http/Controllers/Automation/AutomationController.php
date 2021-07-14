@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Automation;
 use App\Http\Requests\Automation\AutomationRequest;
 use App\Models\Automation;
 use App\Models\Inviting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -14,20 +15,11 @@ class AutomationController extends Controller
     public function index()
     {
         $automations = [];
-        if(auth()->user()->roles[0]['name'] === 'owner') {
-            $users = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get();
+ 
+        $userIds = auth()->user()->getProfileUserIds();
 
-            $userIds = [ auth()->user()->id ];
-            foreach($users as $user) {
-                $userIds[] = $user->invited_user_id;
-            }
-
-            $automations = Automation::whereIn('creator_id', $userIds)->get();
-
-        } else {
-            $automations = Automation::where('creator_id', auth()->user()->id)->get();
-        }
-
+        $automations = Automation::whereIn('creator_id', $userIds)->get();
+        
         return response()->json([
             'status' => 'success',
             'data' => $automations,
@@ -38,14 +30,19 @@ class AutomationController extends Controller
     {
         $attr = $request->validated();
 
-        $task = Automation::create([
+        $aut = [
             'creator_id' => auth()->user()->id,
             'condition' => $attr['condition'],
             'action' => $attr['action'],
             'time' => $attr['time'],
             'title' => $attr['title'],
             'description' => $attr['description'],
-        ]);
+        ];
+        if ($attr['charger_id'] > 0) {
+            $aut['charger_id'] = $attr['charger_id'];
+        }
+
+        $task = Automation::create($aut);
 
         return response()->json(['status' => 'success'], 200);
     }
@@ -66,6 +63,9 @@ class AutomationController extends Controller
         $automation->time = $attr['time'];
         $automation->title = $attr['title'];
         $automation->description = $attr['description'];
+        if ($attr['charger_id'] > 0) {
+            $automation->charger_id = $attr['charger_id'];
+        }
 
         $automation->save();
         return response()->json(['status' => 'success'], 200);

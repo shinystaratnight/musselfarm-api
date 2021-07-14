@@ -23,10 +23,21 @@ class TaskController extends Controller
 
             $tasks = Task::whereIn('creator_id', $userIds)->get();
 
-        } else {
+        } else if (auth()->user()->roles[0]['name'] === 'admin') {
+            
             $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
 
             $o = User::where('id', $owner['inviting_user_id'])->first();
+            $users = Inviting::with('users')->where('inviting_user_id', $o['id'])->get();
+
+            $userIds = [ $o['id'] ];
+            foreach($users as $user) {
+                $userIds[] = $user->invited_user_id;
+            }
+
+            $tasks = Task::whereIn('creator_id', $userIds)->get();
+
+        } else {
 
             $tasks = Task::where('creator_id', auth()->user()->id)
                             ->orWhere('charger_id', auth()->user()->id)->get();
