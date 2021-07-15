@@ -36,6 +36,7 @@ class AutomationController extends Controller
             'action' => $attr['action'],
             'time' => $attr['time'],
             'title' => $attr['title'],
+            'unit' => $attr['unit'],
             'description' => $attr['description'],
         ];
         if ($attr['charger_id'] > 0) {
@@ -62,6 +63,7 @@ class AutomationController extends Controller
         $automation->action = $attr['action'];
         $automation->time = $attr['time'];
         $automation->title = $attr['title'];
+        $automation->unit = $attr['unit'];
         $automation->description = $attr['description'];
         if ($attr['charger_id'] > 0) {
             $automation->charger_id = $attr['charger_id'];

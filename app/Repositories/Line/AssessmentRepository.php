@@ -52,7 +52,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
 
             foreach($automations as $automation) {
                 
-                $due_date = $due_date = Carbon::now()->addDays($automation->time)->timestamp * 1000;
+                $due_date = $due_date = Carbon::now()->add($automation->time, $automation->unit)->timestamp * 1000;
 
                 $access = User::find($automation->creator_id)->checkUserFarmAccess($harvest->line_id);
                 if ($automation->charger_id && $access) {

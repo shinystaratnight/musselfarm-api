@@ -85,7 +85,7 @@ class HarvestGroupController extends Controller
 
         foreach($automations as $automation) {   
             
-            $due_date = Carbon::createFromTimestamp($attr['harvest_complete_date'])->addDays($automation->time)->timestamp * 1000;
+            $due_date = Carbon::createFromTimestamp($attr['harvest_complete_date'])->add($automation->time, $automation->unit)->timestamp * 1000;
 
             $access = User::find($automation->creator_id)->checkUserFarmAccess($harvest->line_id);
             if ($automation->charger_id && $access) {

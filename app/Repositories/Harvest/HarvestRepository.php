@@ -45,15 +45,15 @@ class HarvestRepository implements HarvestRepositoryInterface
                 $due_date = 0;
                 if ($automation->condition == 'Seeding') {
                     if ($type == 'Created') {
-                        $due_date = Carbon::now()->addDays($automation->time)->timestamp * 1000;
+                        $due_date = Carbon::now()->add($automation->time, $automation->unit)->timestamp * 1000;
                     } else if ($type == 'Completed' || $type == 'Upcoming') {
-                        $due_date = Carbon::createFromTimestamp($attr['planned_date'])->addDays($automation->time)->timestamp * 1000;
+                        $due_date = Carbon::createFromTimestamp($attr['planned_date'])->add($automation->time, $automation->unit)->timestamp * 1000;
                     }
                 } else if ($automation->condition == 'Harvesting') {
                     if ($type == 'Created') {
-                        $due_date = Carbon::now()->addDays($automation->time)->timestamp * 1000;
+                        $due_date = Carbon::now()->add($automation->time, $automation->unit)->timestamp * 1000;
                     } else if ($type == 'Upcoming') {
-                        $due_date = Carbon::createFromTimestamp($attr['planned_date_harvest'])->addDays($automation->time)->timestamp * 1000;
+                        $due_date = Carbon::createFromTimestamp($attr['planned_date_harvest'])->add($automation->time, $automation->unit)->timestamp * 1000;
                     }
                 }
 

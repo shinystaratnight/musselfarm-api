@@ -13,6 +13,7 @@ class Automation extends Model
     protected $fillable = ['condition',
                            'action',
                             'time',
+                            'unit',
                             'title',
                             'description',
                             'creator_id',
