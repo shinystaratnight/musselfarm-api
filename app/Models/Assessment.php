@@ -17,6 +17,7 @@ class Assessment extends Model
                            'condition_avg',
                            'blues',
                            'tones',
+                           'date_assessment',
                            'planned_date_harvest',
                            'comment'];
 

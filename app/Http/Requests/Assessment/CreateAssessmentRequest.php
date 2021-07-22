@@ -35,6 +35,7 @@ class CreateAssessmentRequest extends FormRequest
             'condition_average' => 'nullable|numeric',
             'blues' => 'nullable|numeric',
             'tones' => 'nullable|numeric|between:0.000,999999.999',
+            'date_assessment' => 'required|nullable|numeric',
             'planned_date_harvest' => 'nullable|numeric',
             'comment' => 'nullable|max:1000',
         ];

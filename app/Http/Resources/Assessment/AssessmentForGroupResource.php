@@ -23,6 +23,7 @@ class AssessmentForGroupResource extends JsonResource
             'condition_avg' => $this->condition_avg,
             'blues' => $this->blues,
             'tones' => $this->tones,
+            'date_assessment' => (int)$this->date_assessment,
             'planned_date_harvest' => (int)$this->planned_date_harvest,
             'comment' => !empty($this->comment) ? $this->comment : '',
             'created_at' => Carbon::parse($this->created_at)->timestamp

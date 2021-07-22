@@ -28,11 +28,12 @@ class UpdateAssessmentRequest extends FormRequest
     public function rules()
     {
         return [
-            'color' => 'nullable|in:good,fair,orange',
+            'color' => 'nullable',
             'condition_min' => 'nullable|numeric',
             'condition_max' => 'nullable|numeric',
             'blues' => 'nullable|numeric',
             'tones' => 'nullable|numeric|between:0.000,9999999.999',
+            'date_assessment' => 'required|nullable|numeric',
             'planned_date_harvest' => 'nullable|numeric',
             'comment' => 'nullable|max:1000',
         ];
