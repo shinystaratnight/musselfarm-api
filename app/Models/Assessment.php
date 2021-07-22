@@ -19,6 +19,7 @@ class Assessment extends Model
                            'tones',
                            'date_assessment',
                            'planned_date_harvest',
+                           'condition_score',
                            'comment'];
 
     public function group()

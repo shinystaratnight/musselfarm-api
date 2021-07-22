@@ -21,8 +21,10 @@ class AssessmentResource extends JsonResource
             'condition_min' => $this->condition_min,
             'condition_max' => $this->condition_max,
             'condition_avg' => $this->condition_avg,
+            'condition_score' => $this->condition_score,
             'blues' => $this->blues,
             'tones' => $this->tones,
+            'date_assessment' => 'required|nullable|numeric',
             'planned_date_harvest' => $this->planned_date_harvest,
             'comment' => !empty($this->comment) ? $this->comment : '',
             'created_at' => Carbon::parse($this->created_at)->timestamp

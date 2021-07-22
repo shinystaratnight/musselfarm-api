@@ -29,6 +29,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             'condition_avg' => $average,
             'blues' => $attr['blues'],
             'tones' => $attr['tones'],
+            'condition_score' => $attr['condition_score'],
             'date_assessment' => $attr['date_assessment'],
             'planned_date_harvest' => $attr['planned_date_harvest'],
             'comment' => $attr['comment'],
