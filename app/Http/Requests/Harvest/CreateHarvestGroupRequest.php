@@ -35,6 +35,7 @@ class CreateHarvestGroupRequest extends FormRequest
             "seed_id" => 'required|numeric|exists:farm_utils,id',
             "density" => 'required|integer',
             "drop" => 'required|numeric',
+            "spat_size" => 'required|numeric',
             "floats" => 'required|integer',
             "spacing" => 'required|integer',
             "submersion" => 'required|integer',

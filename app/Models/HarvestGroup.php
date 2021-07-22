@@ -25,6 +25,7 @@ class HarvestGroup extends Model
                            'profit_per_meter',
                            'density',
                            'drop',
+                           'spat_size',
                            'floats',
                            'spacing',
                            'submersion'];

@@ -30,6 +30,7 @@ class HarvestRepository implements HarvestRepositoryInterface
                 'seed_id' => $attr['seed_id'],
                 'density' => $attr['density'],
                 'drop' => $attr['drop'],
+                'spat_size' => $attr['spat_size'],
                 'floats' => $attr['floats'],
                 'spacing' => $attr['spacing'],
                 'submersion' => $attr['submersion'],

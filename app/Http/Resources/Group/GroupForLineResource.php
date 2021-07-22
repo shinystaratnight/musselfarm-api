@@ -31,6 +31,7 @@ class GroupForLineResource extends JsonResource
             'condition' =>  $this->condition,
             'density' => $this->density,
             'drop' => $this->drop,
+            'spat_size' => $this->spat_size,
             'floats' => $this->floats,
             'spacing' => $this->spacing,
             'submersion' => $this->submersion,
