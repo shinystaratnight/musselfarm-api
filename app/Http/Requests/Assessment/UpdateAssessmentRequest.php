@@ -36,6 +36,8 @@ class UpdateAssessmentRequest extends FormRequest
             'date_assessment' => 'required|nullable|numeric',
             'planned_date_harvest' => 'nullable|numeric',
             'comment' => 'nullable|max:1000',
+            'condition_score' => 'numeric',
+            'date_assessment' => 'required|nullable|numeric',
         ];
     }
 

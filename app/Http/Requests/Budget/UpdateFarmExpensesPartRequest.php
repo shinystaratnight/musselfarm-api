@@ -31,7 +31,7 @@ class UpdateFarmExpensesPartRequest extends FormRequest
             'farm_id' => 'required|numeric|exists:farms,id',
             // 'line_id' => 'required|numeric|exists:lines,id',
             // 'budget_id' => 'nullable|numeric|exists:line_budgets,id',
-            'expenses_id' => 'required|numeric|exists:expenses,id',
+            'expenses_id' => 'required|numeric|exists:farm_expenses,id',
             'data_row' => 'required|string|in:price_actual,price_budget',
             'value' => 'required|numeric|min:0|max:9999999.99',
             'comment' => 'nullable|string|max:255',
