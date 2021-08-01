@@ -28,6 +28,7 @@ class AutomationRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:account,id',
             'condition' => 'required|string|in:Seeding,Harvesting,Assessment',
             'action' => 'required|string|in:Created,Completed,Upcoming',
             'time' => 'required|numeric|in:-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7',

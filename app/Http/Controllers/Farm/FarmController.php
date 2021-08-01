@@ -9,6 +9,7 @@ use App\Http\Requests\Farm\UpdateFarmRequest;
 use App\Http\Resources\Farm\FarmResource;
 use App\Http\Controllers\Controller;
 use App\Repositories\Farm\FarmRepositoryInterface as MarineFarm;
+use Illuminate\Http\Request;
 
 class FarmController extends Controller
 {
@@ -24,9 +25,12 @@ class FarmController extends Controller
 //        return $this->farmRepo->farms(auth()->user()->id);
     }
 
-    public function show(Farm $farm)
+    public function show(Request $request, Farm $farm)
     {
-        $this->authorize('show', $farm);
+        $this->authorize('show', [
+            $farm,
+            $request->input('account_id')
+        ]);
 
         return new FarmResource($farm);
     }
@@ -40,21 +44,27 @@ class FarmController extends Controller
 
     public function update(UpdateFarmRequest $request, Farm $farm)
     {
-        $this->authorize('update', $farm);
-
+        $this->authorize('update', [
+            $farm,
+            $request->input('account_id')
+        ]);
+        
         $farm->update($request->validated());
 
         return response()->json(['message' => 'Update completed'], 200);
     }
 
-    public function allFarms()
+    public function allFarms(Request $request)
     {
-        return $this->farmRepo->farms(auth()->user()->id);
+        return $this->farmRepo->farms($request->input('account_id'));
     }
 
-    public function destroy(Farm $farm)
+    public function destroy(Request $request, Farm $farm)
     {
-        $this->authorize('update', $farm);
+        $this->authorize('update', [
+            $farm,
+            $request->input('account_id')
+        ]);
 
         $deletedFarm = $farm;
 

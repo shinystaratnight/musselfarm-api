@@ -18,10 +18,10 @@ class Line extends Model
         return $this->belongsTo(Farm::class,  'farm_id', 'id');
     }
 
-    public function users()
-    {
-        return $this->belongsToMany(User::class)->withPivot('user_id');
-    }
+    // public function users()
+    // {
+    //     return $this->belongsToMany(User::class)->withPivot('user_id');
+    // }
 
     public function seeds()
     {

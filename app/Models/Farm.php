@@ -14,11 +14,16 @@ class Farm extends Model
 
     protected $cascadeDeletes = ['lines'];
 
-    protected $fillable = ['user_id', 'name', 'long', 'lat', 'area', 'owner', 'farm_number'];
+    protected $fillable = ['user_id', 'name', 'long', 'lat', 'area', 'owner', 'farm_number', 'account_id'];
 
-    public function users()
+    // public function users()
+    // {
+    //     return $this->belongsToMany(User::class)->withPivot('user_id');
+    // }
+
+    public function accounts()
     {
-        return $this->belongsToMany(User::class)->withPivot('user_id');
+        return $this->belongsToMany(Account::class);
     }
 
     public function lines()

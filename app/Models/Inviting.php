@@ -11,7 +11,7 @@ class Inviting extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['email', 'status', 'token', 'user_access', 'inviting_user_id', 'invited_user_id'];
+    protected $fillable = ['email', 'status', 'token', 'user_access', 'inviting_user_id', 'invited_user_id', 'inviting_account_id'];
 
     public function users()
     {

@@ -28,6 +28,7 @@ class UpdateRolePermissionRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:accounts,id',
             'user_id' => 'numeric|exists:users,id',
             'role_id' => 'nullable|numeric|exists:roles,id',
             'permission_id.*' => 'nullable|numeric|exists:permissions,id',

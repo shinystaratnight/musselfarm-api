@@ -5,6 +5,7 @@ namespace App\Repositories\Line;
 use App\Http\Resources\Line\LineResource;
 use App\Models\HarvestGroup;
 use App\Models\Line;
+use App\Models\Farm;
 use App\Models\LineArchive;
 use App\Models\LineBudget;
 use App\Models\Line\Assessment;
@@ -20,36 +21,21 @@ class LineRepository implements LineRepositoryInterface
             'length' => $attr['length'],
         ]);
 
-            $date = Carbon::now();
+        $date = Carbon::now();
 
-            $startOfYear = $date->copy()->startOfYear()->timestamp;
+        $startOfYear = $date->copy()->startOfYear()->timestamp;
 
-            LineBudget::create([
-                'line_id' => $line['id'],
-                'start_budget' => $startOfYear,
-                'length_budget' => $attr['length'],
-                'length_actual' => $attr['length']
-            ]);
+        LineBudget::create([
+            'line_id' => $line['id'],
+            'start_budget' => $startOfYear,
+            'length_budget' => $attr['length'],
+            'length_actual' => $attr['length']
+        ]);
 
-        if(auth()->user()->roles[0]['name'] === 'owner') {
 
-            auth()->user()->lines()->attach($line->id);
-
-        } else {
-
-            auth()->user()->lines()->attach($line->id);
-
-            auth()->user()->getOwner()->lines()->attach($line->id);
-        }
+        Farm::find($attr['farm_id'])->save((array)$line);
 
         return response()->json(['status' => 'Success', 'line_id' => $line->id], 200);
-    }
-
-    public function getLinesByFarmId()
-    {
-        $lines = Line::has('users', '=', auth()->user()->id)->with('harvests')->get();
-
-        return LineResource::collection($lines);
     }
 
     public function editLine($attr)

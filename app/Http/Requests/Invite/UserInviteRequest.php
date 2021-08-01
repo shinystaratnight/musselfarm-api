@@ -28,6 +28,7 @@ class UserInviteRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:account,id',
             'email' => 'required|email|unique:users,email|unique:invites,email',
             'inviting_user_id' => 'required|numeric|exists:users,id',
             'role_id' => 'required|numeric|exists:roles,id',

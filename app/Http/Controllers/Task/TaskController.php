@@ -7,13 +7,15 @@ use App\Models\Inviting;
 use App\Models\User;
 use App\Http\Requests\Task\TaskRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $tasks = [];
-        if(auth()->user()->roles[0]['name'] === 'owner') {
+        $account = auth()->user()->getAccount($request->input('account_id'));
+        if($account->pivot->roles[0]['name'] === 'owner') {
             $users = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get();
 
             $userIds = [ auth()->user()->id ];
@@ -23,7 +25,7 @@ class TaskController extends Controller
 
             $tasks = Task::whereIn('creator_id', $userIds)->get();
 
-        } else if (auth()->user()->roles[0]['name'] === 'admin') {
+        } else if ($account->pivot->roles[0]['name'] === 'admin') {
             
             $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
 

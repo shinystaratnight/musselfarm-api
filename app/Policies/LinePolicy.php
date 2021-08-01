@@ -10,20 +10,42 @@ class LinePolicy
 {
     use HandlesAuthorization;
 
-    public function viewLine(User $user, Line $line) // Work for index, show methods
+    public function viewLine(User $user, Line $line, $acc_id) // Work for index, show methods
     {
-        if(in_array($user->id, $line->users->pluck('id')->toArray()) && $user->can('view')) {
+        try {
+            $uac = $user->getAccount($acc_id)->pivot;
+            $access = json_decode($uac->user_access);
+            if ($access) {
+                if ($uac->hasRole('admin')) {
+                    return true;
+                }
+                if ($uac->hasPermissionTo('view') && in_array($line->id, $access->line_id)){
+                    return true;
+                }
+                return $this->deny("Not found", 403);
+            }
             return true;
-        } else {
+        } catch(Exception $e) {
             return $this->deny("Not found", 403);
         }
     }
 
-    public function editLine(User $user, Line $line) // Work for update, delete methods
+    public function editLine(User $user, Line $line, $acc_id) // Work for update, delete methods
     {
-        if(in_array($user->id, $line->users->pluck('id')->toArray()) && $user->can('edit')) {
+        try {
+            $uac = $user->getAccount($acc_id)->pivot;
+            $access = json_decode($uac->user_access);
+            if ($access) {
+                if ($uac->hasRole('admin')) {
+                    return true;
+                }
+                if ($uac->hasPermissionTo('edit') && in_array($line->id, $access->line_id)){
+                    return true;
+                }
+                return $this->deny("Not found", 403);
+            }
             return true;
-        } else {
+        } catch(Exception $e) {
             return $this->deny("Not found", 403);
         }
     }

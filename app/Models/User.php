@@ -72,10 +72,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Farm::class)->withPivot('user_id');
     }
 
-    public function lines()
-    {
-        return $this->belongsToMany(Line::class)->withPivot('user_id');
-    }
+    // public function lines()
+    // {
+    //     return $this->belongsToMany(Line::class)->withPivot('user_id');
+    // }
 
     public function changeEmails()
     {
@@ -91,9 +91,17 @@ class User extends Authenticatable
         return $user;
     }
 
-    public function getAccount()
+    public function accounts()
     {
-        return Account::where('id', $this->account_id)->first();
+        return $this->belongsToMany(Account::class)->withPivot('id', 'user_access')->using('App\Models\AccountUser');
+    }
+
+    public function getAccount($acc_id = 0)
+    {
+        if ($acc_id === 0)
+            return Account::where('id', $this->account_id)->first();
+        else
+            return $this->accounts()->where('account_id', $acc_id)->first();
     }
 
     public function checkUserFarmAccess($line_id)
@@ -106,20 +114,23 @@ class User extends Authenticatable
         return in_array($line_id, $lines);
     }
 
-    public function getProfileUserIds()
+    public function getProfileUserIds($inviterId = 0)
     {
         $ownerId = $this->id;
-        if($this->roles[0]['name'] !== 'owner') {
-            $owner = Inviting::where('invited_user_id', $this->id)->first();
-            $o = User::where('id', $owner['inviting_user_id'])->first();
-            $ownerId = $o['id'];
+        if ($inviterId > 0) {
+            $ownerId = $inviterId;
         }
+        // if($this->roles[0]['name'] !== 'owner') {
+        //     $owner = Inviting::where('invited_user_id', $this->id)->first();
+        //     $o = User::where('id', $owner['inviting_user_id'])->first();
+        //     $ownerId = $o['id'];
+        // }
 
         $users = Inviting::with('users')->where('inviting_user_id', $ownerId)->get();
 
         $userIds = [ $ownerId ];
         foreach($users as $user) {
-            $userIds[] = $user->invited_user_id;
+            $userIds[] = $user->inviting_user_id;
         }
 
         return $userIds;

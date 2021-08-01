@@ -10,6 +10,7 @@ use App\Http\Resources\Invited\InvitedUserResource;
 use App\Http\Resources\Invited\RolePermResource;
 use App\Models\Invite;
 use App\Models\Inviting;
+use App\Models\Account;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\InviteNotification;
@@ -35,28 +36,11 @@ class UserController extends Controller
         $this->inviteRepo = $invite;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        if(auth()->user()->roles[0]['name'] === 'owner') {
-            $invites = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get()->toArray();
-
-            $users = User::whereIn('id', array_map(function($invite) {
-                return $invite['invited_user_id'];
-            }, $invites))->orWhere('id', auth()->user()->id)->get();
-
-            return InvitedUserResource::collection($users);
-        } else {
-            $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
-
-            $invites = Inviting::with('users')->where('inviting_user_id', $owner['inviting_user_id'])->get()->toArray();
-            $ids = array_map(function($invite) {
-                return $invite['invited_user_id'];
-            }, $invites);
-
-            $users = User::whereIn('id', $ids)->orWhere('id', $owner['inviting_user_id'])->get();
-
-            return InvitedUserResource::collection($users);
-        }
+        return InvitedUserResource::collection(
+            Account::find($request->input('account_id'))->users
+        );
     }
 
     public function show(User $user)
@@ -110,7 +94,10 @@ class UserController extends Controller
 
         $user = User::find($attr['user_id']);
 
-        if((auth()->user()->roles[0]['name'] === 'admin') && ($user->roles[0]['name'] === 'admin')) {
+        if(
+            (auth()->user()->getAccount($attr['account_id'])->pivot->roles[0]['name'] === 'admin') &&
+            ($user->getAccount($attr['account_id'])->pivot->roles[0]['name'] === 'admin')
+        ) {
             return response()->json(['message' => 'Admin cannot deactivate admin'], 404);
         } else {
             Inviting::where('invited_user_id', $user->id)->update(['status' => 'deactivated']);
@@ -139,6 +126,24 @@ class UserController extends Controller
         $attr = $request->validated();
 
         return $this->inviteRepo->invite($attr);
+    }
+
+    public function getInviters()
+    {
+        $inviters = Inviting::where('invited_user_id', auth()->user()->id)->get()->toArray();
+
+        $users = User::whereIn('id', array_map(function($inviter) {
+            return $inviter['inviting_user_id'];
+        }, $inviters))->get()->toArray();
+
+        $userList = array_map(function($user) {
+            return array(
+                'email' => $user['email'],
+                'id' => $user['id']
+            );
+        }, $users);
+
+        return response()->json(['inviters' => $userList], 200);
     }
 
     public function getPermissions(DeactivateInviteUserRequest $request)
@@ -182,7 +187,7 @@ class UserController extends Controller
             if (isset($attr['farm_id'])) {
                 $user->farms()->sync($attr['farm_id']);
             }
-// TODO add detach for farms and lines
+            // TODO add detach for farms and lines
             if (isset($attr['line_id'])) {
                 $user->lines()->sync($attr['line_id']);
             }

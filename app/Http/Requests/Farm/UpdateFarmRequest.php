@@ -28,6 +28,7 @@ class UpdateFarmRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|numeric|exists:accounts,id',
             'name' => 'string|nullable',
             'long' => ["nullable", "numeric", "regex:/^[-]?((((1[0-7][0-9])|([0-9]?[0-9]))\.(\d+))|180(\.0+)?)$/"],
             'lat' => ["nullable", "numeric", "regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/"],

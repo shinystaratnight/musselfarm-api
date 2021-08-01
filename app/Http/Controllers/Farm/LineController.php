@@ -19,11 +19,6 @@ class LineController extends Controller
         $this->lineRepo = $line;
     }
 
-    public function index()
-    {
-        return $this->lineRepo->getLinesByFarmId(request());
-    }
-
     public function store(LineRequest $request)
     {
         $attr = $request->validated();
@@ -31,9 +26,12 @@ class LineController extends Controller
         return $this->lineRepo->createLine($attr);
     }
 
-    public function show(Line $line)
+    public function show(Request $request, Line $line)
     {
-        $this->authorize('viewLine', $line);
+        $this->authorize('viewLine', [
+            $line,
+            $request->input('account_id')
+        ]);
 
         if(!$line) {
             return response()->json(['message' => 'Not found'], 404);
@@ -44,18 +42,24 @@ class LineController extends Controller
 
     public function update(UpdateLineRequest $request, Line $line)
     {
-        $this->authorize('editLine', $line);
-
         $attr = $request->validated();
+
+        $this->authorize('editLine', [
+            $line,
+            $attr['account_id']
+        ]);
 
         $this->lineRepo->editLine($attr);
 
         return response()->json(['status' => 'Success'], 200);
     }
 
-    public function destroy(Line $line)
+    public function destroy(Request $request, Line $line)
     {
-        $this->authorize('editLine', $line);
+        $this->authorize('editLine', [
+            $line,
+            $request->input('account_id')
+        ]);
 
         $line->delete();
 

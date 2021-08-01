@@ -32,6 +32,7 @@ class CardUpdateRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:account,id',
             'card_number' => ['required', new CardNumber],
             'expiration_year' => ['required', new CardExpirationYear($this->get('expiration_month'))],
             'expiration_month' => ['required', new CardExpirationMonth($this->get('expiration_year'))],

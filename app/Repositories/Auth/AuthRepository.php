@@ -112,6 +112,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         $account = Account::create([]);
         $user->account_id = $account->id;
+        $user->getAccounts()->attach($account->id);
         $user->save();
 
         // Set Default Farms Util

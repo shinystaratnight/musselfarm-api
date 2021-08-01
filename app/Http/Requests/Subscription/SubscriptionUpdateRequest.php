@@ -32,6 +32,7 @@ class SubscriptionUpdateRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:account,id',
             'quantity' => 'required|numeric',
             'plan_id' => 'required|string',
         ];

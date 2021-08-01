@@ -28,6 +28,7 @@ class UpdateLineRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|numeric|exists:accounts,id',
             'line_id' => 'required|numeric|exists:lines,id',
             'line_name' => 'nullable|string|max:50',
             'length' => 'nullable|numeric|min:0',

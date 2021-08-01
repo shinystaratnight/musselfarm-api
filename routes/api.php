@@ -72,6 +72,8 @@ Route::group(['middleware' => 'auth:api'], function ()
     });
 
     Route::group(['prefix' => 'user'], function() {
+        //Get Inviters
+        Route::post('inviters', [UserController::class, 'getInviters']);
 
         // Invited users actions route
         Route::post('deactivate', [UserController::class, 'deactivate']);

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Overview;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Overview\OverviewFarmInfoRequest;
 use App\Repositories\Overview\OverviewRepositoryInterface as Overview;
-use Illuminate\Http\Request;
 
 class OverviewController extends Controller
 {
@@ -16,24 +16,24 @@ class OverviewController extends Controller
         $this->overRepo = $overview;
     }
 
-    public function nextSeeding()
+    public function nextSeeding(Request $request)
     {
-        return $this->overRepo->plannedSeedingDate();
+        return $this->overRepo->plannedSeedingDate($request->input('account_id'));
     }
 
-    public function farmReview()
+    public function farmReview(Request $request)
     {
-        return $this->overRepo->farmReview();
+        return $this->overRepo->farmReview($request->input('account_id'));
     }
 
-    public function accountInfo()
+    public function accountInfo(Request $request)
     {
-        return $this->overRepo->accountDetail();
+        return $this->overRepo->accountDetail($request->input('account_id'));
     }
 
-    public function nextHarvest()
+    public function nextHarvest(Request $request)
     {
-        return $this->overRepo->plannedHarvestDate();
+        return $this->overRepo->plannedHarvestDate($request->input('account_id'));
     }
 
     public function farmBudgetedInfo(OverviewFarmInfoRequest $request)
@@ -43,8 +43,8 @@ class OverviewController extends Controller
         return $this->overRepo->farmsInfo($attr);
     }
 
-    public function getChart()
+    public function getChart(Request $request)
     {
-        return $this->overRepo->chartData();
+        return $this->overRepo->chartData($request->input('account_id'));
     }
 }

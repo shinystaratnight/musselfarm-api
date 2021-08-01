@@ -28,6 +28,7 @@ class OverviewFarmInfoRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|numeric|exists:accounts,id',
             'farm_id' => 'required|numeric|exists:farms,id'
         ];
     }

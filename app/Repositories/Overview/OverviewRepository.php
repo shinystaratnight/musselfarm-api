@@ -7,6 +7,7 @@ use App\Http\Resources\Overview\NextHarvestResource;
 use App\Http\Resources\Overview\NextSeedingResource;
 use App\Models\Assessment;
 use App\Models\ChartData;
+use App\Models\Account;
 use App\Models\Farm;
 use App\Models\HarvestGroup;
 use App\Models\Line;
@@ -16,25 +17,13 @@ use Illuminate\Database\Eloquent\Collection;
 
 class OverviewRepository implements OverviewRepositoryInterface
 {
-    public function plannedSeedingDate()
+    public function plannedSeedingDate($acc_id = 0)
     {
-        $user_id = null;
-
         $nextHarvests = null;
 
-        if(auth()->user()->roles[0]['name'] == 'owner') {
+        if($acc_id != null) {
 
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id != null) {
-
-            $farms = Farm::where('user_id', $user_id)->with('lines')->get();
+            $farms = Farm::where('account_id', $acc_id)->with('lines')->get();
 
             $lines = null;
 
@@ -64,23 +53,11 @@ class OverviewRepository implements OverviewRepositoryInterface
         }
     }
 
-    public function farmReview()
+    public function farmReview($acc_id = 0)
     {
-        $user_id = null;
+        if($acc_id != null) {
 
-        if(auth()->user()->roles[0]['name'] == 'owner') {
-
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id != null) {
-
-            $farms = Farm::where('user_id', $user_id);
+            $farms = Farm::where('account_id', $acc_id);
 
             $farmsArea = $farms->sum('area');
 
@@ -107,23 +84,11 @@ class OverviewRepository implements OverviewRepositoryInterface
         }
     }
 
-    public function accountDetail()
+    public function accountDetail($acc_id = 0)
     {
-        $user_id = null;
+        if($acc_id != null) {
 
-        if(auth()->user()->roles[0]['name'] == 'owner') {
-
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id != null) {
-
-            $farms = Farm::where('user_id', $user_id);
+            $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
@@ -168,25 +133,13 @@ class OverviewRepository implements OverviewRepositoryInterface
         }
     }
 
-    public function plannedHarvestDate()
+    public function plannedHarvestDate($acc_id = 0)
     {
-        $user_id = null;
-
         $nextHarvests = null;
 
-        if(auth()->user()->roles[0]['name'] == 'owner') {
+        if($acc_id != null) {
 
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id != null) {
-
-            $farms = Farm::where('user_id', $user_id)->with('lines')->get();
+            $farms = Farm::where('account_id', $acc_id)->with('lines')->get();
 
             $lines = null;
 
@@ -218,64 +171,48 @@ class OverviewRepository implements OverviewRepositoryInterface
 
     public function farmsInfo($attr)
     {
-        $user_id = null;
+        $farms = Account::find($attr['account_id'])->farms->where('id', $attr['farm_id']);
 
-        if(auth()->user()->roles[0]['name'] == 'owner') {
+        $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
-            $user_id = auth()->user()->id;
+        $scy = Carbon::now()->startOfYear()->timestamp; // start current year
 
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
+        $spy = Carbon::now()->subYear()->startOfYear()->timestamp; // start previous year
 
-            $user_id = auth()->user()->getOwner();
+        $epy = $spy = Carbon::now()->subYear()->endOfYear()->timestamp; // end previous year
 
-        }
+        $currentYear = LineBudget::whereIn('line_id', $lines->pluck('id'))
+                                ->where('start_budget', $scy)
+                                ->where('end_budget', 0);
 
-        if($user_id != null) {
+        $previousYear = LineBudget::whereIn('line_id', $lines->pluck('id'))
+                                ->where('start_budget', $spy)
+                                ->where('end_budget', $epy);
 
-            $farms = Farm::where('user_id', $user_id)->where('id', $attr['farm_id']);
+        $year = Carbon::now()->year;
 
-            $lines = Line::whereIn('farm_id', $farms->pluck('id'));
-
-            $scy = Carbon::now()->startOfYear()->timestamp; // start current year
-
-            $spy = Carbon::now()->subYear()->startOfYear()->timestamp; // start previous year
-
-            $epy = $spy = Carbon::now()->subYear()->endOfYear()->timestamp; // end previous year
-
-            $currentYear = LineBudget::whereIn('line_id', $lines->pluck('id'))
-                                     ->where('start_budget', $scy)
-                                     ->where('end_budget', 0);
-
-            $previousYear = LineBudget::whereIn('line_id', $lines->pluck('id'))
-                                      ->where('start_budget', $spy)
-                                      ->where('end_budget', $epy);
-
-            $year = Carbon::now()->year;
-
-            return response()->json([
-                ['name' => 'Harvested',
-                 'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
-                 'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
-                    ],
+        return response()->json([
+            ['name' => 'Harvested',
+            'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
+            'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
+                ],
 //                ['name' => 'Seeded',
 //                    'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
 //                    'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
 //                ],
-                ['name' => 'Earned',
-                    'this_year' => $currentYear->sum('budgeted_harvest_income_actual'),
-                    'last_year' => $previousYear->sum('budgeted_harvest_income_actual'),
-                ],
-            ], 200);
-
-        }
+            ['name' => 'Earned',
+                'this_year' => $currentYear->sum('budgeted_harvest_income_actual'),
+                'last_year' => $previousYear->sum('budgeted_harvest_income_actual'),
+            ],
+        ], 200);
     }
 
-    public function chartData()
+    public function chartData($acc_id = 0)
     {
         $grid = $this->createDateGrid();
-        $assesst = $this->getAssessments();
-        $harv = $this->getHarvests();
-        $seed = $this->getSeeding();
+        $assesst = $this->getAssessments($acc_id);
+        $harv = $this->getHarvests($acc_id);
+        $seed = $this->getSeeding($acc_id);
 
         $assessments = ['name' => 'assessments'];
         $harvests = ['name' => 'harvest'];
@@ -394,22 +331,10 @@ class OverviewRepository implements OverviewRepositoryInterface
         return $gridArr;
     }
 
-    public function getAssessments()
+    public function getAssessments($acc_id)
     {
-        $user_id = null;
-
-        if(auth()->user()->roles[0]['name'] == 'owner') {
-
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id) {
-            $farms = Farm::where('user_id', $user_id);
+        if($acc_id) {
+            $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
@@ -424,23 +349,11 @@ class OverviewRepository implements OverviewRepositoryInterface
         }
     }
 
-    public function getHarvests()
+    public function getHarvests($acc_id)
     {
-        $user_id = null;
+        if($acc_id) {
 
-        if(auth()->user()->roles[0]['name'] == 'owner') {
-
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id) {
-
-            $farms = Farm::where('user_id', $user_id);
+            $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
@@ -459,22 +372,10 @@ class OverviewRepository implements OverviewRepositoryInterface
         }
     }
 
-    public function getSeeding()
+    public function getSeeding($acc_id)
     {
-        $user_id = null;
-
-        if(auth()->user()->roles[0]['name'] == 'owner') {
-
-            $user_id = auth()->user()->id;
-
-        } elseif (in_array(auth()->user()->roles[0]['name'], ['admin', 'user'])) {
-
-            $user_id = auth()->user()->getOwner();
-
-        }
-
-        if($user_id) {
-            $farms = Farm::where('user_id', $user_id);
+        if($acc_id) {
+            $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 

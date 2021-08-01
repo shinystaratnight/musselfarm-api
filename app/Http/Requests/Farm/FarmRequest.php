@@ -28,6 +28,7 @@ class FarmRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:accounts,id',
             'user_id' => 'required|numeric|exists:users,id',
             'name' => 'required|string',
             'long' => ["required", "numeric", "regex:/^[-]?((((1[0-7][0-9])|([0-9]?[0-9]))\.(\d+))|180(\.0+)?)$/"],

@@ -28,6 +28,7 @@ class DeactivateInviteUserRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|numeric|exists:accounts,id',
             'user_id' => 'required|numeric|exists:users,id'
         ];
     }

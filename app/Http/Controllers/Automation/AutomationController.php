@@ -12,11 +12,12 @@ use App\Http\Controllers\Controller;
 
 class AutomationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $automations = [];
- 
-        $userIds = auth()->user()->getProfileUserIds();
+        $inviterId = $request->exists('inviter') ? $request->input('inviter') : 0;
+
+        $userIds = auth()->user()->getProfileUserIds($inviterId);
 
         $automations = Automation::whereIn('creator_id', $userIds)->get();
         
