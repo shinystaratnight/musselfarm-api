@@ -67,10 +67,10 @@ class User extends Authenticatable
         return $this->hasMany(Inviting::class,'inviting_user_id', 'id');
     }
 
-    public function farms()
-    {
-        return $this->belongsToMany(Farm::class)->withPivot('user_id');
-    }
+    // public function farms()
+    // {
+    //     return $this->belongsToMany(Farm::class)->withPivot('user_id');
+    // }
 
     // public function lines()
     // {
@@ -93,7 +93,7 @@ class User extends Authenticatable
 
     public function accounts()
     {
-        return $this->belongsToMany(Account::class)->withPivot('id', 'user_access')->using('App\Models\AccountUser');
+        return $this->belongsToMany(Account::class, 'account_user')->withPivot('id', 'user_access')->using('App\Models\AccountUser');
     }
 
     public function getAccount($acc_id = 0)

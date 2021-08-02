@@ -18,13 +18,26 @@ class RolePermResource extends JsonResource
      */
     public function toArray($request)
     {
+        $uac = $this->getAccount($request->input('account_id'));
+        $ua_access = json_decode($uac->pivot->user_access);
+        $farms = $uac->farms;
+        $lines = [];
+        foreach ($farms as $farm) {
+            foreach ($farm->lines as $line) {
+                if (in_array($line->id, $ua_access->line_id)) {
+                    $lines[] = [
+                        'line_id' => $line->id
+                    ];
+                }
+            }
+        }
         return [
             'user_id' => $this->id,
             'email' => $this->email,
-            'role' => RoleResource::collection($this->roles),
-            'permissions' => PermissionResource::collection($this->permissions),
-            'farms' => FarmAccessResource::collection($this->whenLoaded('farms')),
-            'lines' => LineAccessResource::collection($this->whenLoaded('lines'))
+            'role' => RoleResource::collection($uac->pivot->roles),
+            'permissions' => PermissionResource::collection($uac->pivot->permissions),
+            'farms' => FarmAccessResource::collection($uac->farms),
+            'lines' => $lines
         ];
     }
 }

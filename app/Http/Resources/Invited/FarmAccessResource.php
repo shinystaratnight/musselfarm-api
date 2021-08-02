@@ -15,9 +15,7 @@ class FarmAccessResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'farm_id' => $this->whenPivotLoaded('farm_user', function () {
-                return $this->pivot->farm_id;
-            })
+            'farm_id' => $this->id
         ];
     }
 }

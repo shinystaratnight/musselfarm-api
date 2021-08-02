@@ -28,6 +28,7 @@ class UtilRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:accounts,id',
             'name' => 'required|string',
             'type' => 'required|string',
         ];

@@ -27,12 +27,7 @@ class CreateAccountUserTable extends Migration
         $users = User::all();
 
         foreach ($users as $user) {
-            DB::table('account_user')->insert(
-                [
-                    'user_id' => $user->id,
-                    'account_id' => $user->account_id,
-                ]
-            );
+            $user->accounts()->attach($user->account_id);
         }
     }
 

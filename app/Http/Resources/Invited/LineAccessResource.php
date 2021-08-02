@@ -15,9 +15,7 @@ class LineAccessResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'line_id' => $this->whenPivotLoaded('line_user', function () {
-                return $this->pivot->line_id;
-            })
+            'line_id' => $this->lines
         ];
     }
 }

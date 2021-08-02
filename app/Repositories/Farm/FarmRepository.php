@@ -57,10 +57,6 @@ class FarmRepository implements FarmRepositoryInterface
     {
         $user = auth()->user();
         $farms = $user->getAccount($account_id)->getUserFarms($user->id);
-        
-        // $farms = Farm::whereHas('users', function($q) use ($user) {
-        //    $q->where('user_id', '=', $user);
-        // })->get();
 
         return FarmResource::collection($farms);
     }

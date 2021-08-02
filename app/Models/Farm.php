@@ -39,22 +39,35 @@ class Farm extends Model
     public function lines_budgets()
     {
         $l = request();
+        $acc = $l->input('account_id');
+        $uId = auth()->user()->id;
 
-        $u = auth()->user()->id;
+        // file_put_contents("1.txt", Account::where('id', 14)->first()->users);
+        file_put_contents("1.txt", User::where('id', 10)->first()->accounts);
+        // $uaObj = User::with('accounts')->whereHas('accounts', function($q) use($acc) {
+        //     $q->where('accounts.id', '=', $acc);
+        // })->find(auth()->user()->id)->accounts[0];
 
-        return $this->hasMany(Line::class)->whereHas('users', function($q) use ($u, $l) {
-            $q->where('user_id', '=', $u)->where('line_id', '=', $l->line_id);
-        })->with('budgets');
+        // Account::with('users')->whereHas('users', function($q) use($uId) {
+        //     $q->where('users.id', $uId);
+        // })->find();
+
+        // $hasAdminRole = AccountUser::with('roles')->whereHas('roles', function($q) {
+        //     $q->where('roles.name', 'user');
+        // })->where('user_id', auth()->user()->id)->where('account_id', $acc)->get() ? true : false;
+
+        if ($uAccess == '' || $hasAdminRole) {
+            return $this->hasMany(Line::class)->where('id', $l->input('line_id'))->with('budgets');
+        } else if (in_array($l->input('line_id'), $uAccess->line_id)) {
+            return $this->hasMany(Line::class)->where('id', $l->input('line_id'))->with('budgets');
+        }
+        return $this->hasMany(Line::class)->where('id', -1)->with('budgets');
     }
 
     public function overview_budgets()
     {
         $u = auth()->user()->id;
 
-        return $this->hasMany(Line::class)
-//            ->whereHas('users', function($q) use ($u) {
-//            $q->where('user_id', '=', $u);
-//        })
-        ->with('budgets');
+        return $this->hasMany(Line::class)->with('budgets');
     }
 }

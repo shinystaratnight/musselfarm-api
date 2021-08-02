@@ -28,6 +28,7 @@ class TaskRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:account,id',
             'farm_id' => 'required|numeric',
             'line_id' => 'required|numeric',
             'title' => 'required|string',

@@ -7,6 +7,7 @@ use App\Models\Expenses;
 use App\Models\FarmExpenses;
 use App\Models\Farm;
 use App\Models\Line;
+use App\Models\Account;
 use App\Models\SeedingCost;
 use App\Models\MaintenanceCost;
 use App\Models\LineBudget;
@@ -78,29 +79,24 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
     }
 
-    public function getUserFarmsBudget()
+    public function getUserFarmsBudget($acc_id = 0)
     {
-        $u = auth()->user()->id;
-
-//        $budgets = Farm::whereHas('users', function($q) use ($u) {
-//                            $q->where('user_id', '=', $u);
-//                        })->with(['lines_budgets' => function($q) {
-//                            $q->with(['budgets' => function($r) {
-//                                $r->orderBy('start_budget', 'DESC');
-//                            }]);}])->get();
-        $budgets = Farm::whereHas('users', function($q) use ($u) {
-                            $q->where('user_id', '=', $u);
-                        })->with('lines', function($q) {
-                            $q->with(['overview_budgets' => function($r) {
-                                $r->orderByRaw("CASE WHEN end_budget = 0 THEN 0 ELSE 1 END ASC")
-                                    ->orderBy('start_budget', 'DESC');
-                            }]);
-                        })->get();
-//->with(['overview_budgets' => function($r) {
-//                                $r->orderBy('start_budget', 'DESC');
-////                            }]);
-//                        }])->get();
-
+        $acc = Account::find($acc_id)->users()->where('user_id', auth()->user()->id)->first()->pivot->user_access;
+        if ($acc) {
+            $budgets = Farm::whereIn('id', (array)json_decode($acc)->farm_id)->with('lines', function($q) {
+                                $q->with(['overview_budgets' => function($r) {
+                                    $r->orderByRaw("CASE WHEN end_budget = 0 THEN 0 ELSE 1 END ASC")
+                                        ->orderBy('start_budget', 'DESC');
+                                }]);
+                            })->get();
+        } else {
+            $budgets = Farm::whereIn('account_id', $acc_id)->with('lines', function($q) {
+                $q->with(['overview_budgets' => function($r) {
+                    $r->orderByRaw("CASE WHEN end_budget = 0 THEN 0 ELSE 1 END ASC")
+                        ->orderBy('start_budget', 'DESC');
+                }]);
+            })->get();
+        }
 
         return BudgetFarmsLinesResourse::collection($budgets);
     }
@@ -306,9 +302,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
                 $endOfYear = Carbon::parse('last day of December ' . $date)->timestamp;
 
-                $budgets = Farm::whereHas('users', function ($q) use ($u) {
-                    $q->where('user_id', '=', $u);
-                })->where('id', $farm)
+                $budgets = Farm::find('id')
                     ->with('lines', function ($q) use ($startOfYear, $endOfYear) {
                         $q->with('budgets', function ($r) use ($startOfYear, $endOfYear) {
                             $r->where('start_budget', $startOfYear)
@@ -322,9 +316,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
                 $startOfYear = Carbon::parse('first day of January ' . $date)->timestamp;
 
-                $budgets = Farm::whereHas('users', function ($q) use ($u) {
-                    $q->where('user_id', '=', $u);
-                })->where('id', $farm)
+                $budgets = Farm::where('id',$farm)
                     ->with('lines', function ($q) use ($startOfYear) {
                         $q->with('budgets', function ($r) use ($startOfYear) {
                             $r->where('start_budget', $startOfYear)
@@ -341,7 +333,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
             $line = $attr['line_id'];
 
-            $farm_id = Line::find($line);
+            $lineItem = Line::find($line);
 
             $date = Carbon::createFromDate($attr['year']);
 
@@ -349,13 +341,14 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
             $endOfYear = $date->copy()->endOfYear()->timestamp;
 
-            $budgets = Farm::whereHas('users')->with('lines_budgets', function($f) use ($line, $endOfYear, $startOfYear){
+            $budgets = Farm::where('id', $lineItem->farm_id)
+                        ->with('lines_budgets', function($f) use ($line, $endOfYear, $startOfYear){
                             $f->with('budgets', function($r)  use ($line, $endOfYear, $startOfYear){
                                 $r->where('line_id', '=', $line)
                                   ->where('start_budget', '=', $startOfYear)
                                   ->orWhere('end_budget', '=', $endOfYear);
                             });
-                        })->where('id', '=', $farm_id->farm_id)->get();
+                        })->get();
 
             return BudgetFarmsLinesByPeriodResource::collection($budgets);
         }
