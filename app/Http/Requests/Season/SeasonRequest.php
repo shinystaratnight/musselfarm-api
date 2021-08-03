@@ -28,7 +28,7 @@ class SeasonRequest extends FormRequest
     public function rules()
     {
         return [
-            'account_id' => 'required|exists:account,id',
+            'account_id' => 'required|exists:accounts,id',
             'name' => 'required|string',
         ];
     }

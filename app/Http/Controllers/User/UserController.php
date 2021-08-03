@@ -150,7 +150,7 @@ class UserController extends Controller
     {
         $attr = $request->validated();
 
-        $user = User::where('id', $attr['user_id'])->with(['roles', 'permissions', 'farms', 'lines'])->first();
+        $user = User::where('id', $attr['user_id'])->first();
 
         return new RolePermResource($user);
     }

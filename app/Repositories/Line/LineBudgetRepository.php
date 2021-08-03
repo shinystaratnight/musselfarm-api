@@ -331,8 +331,10 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
         } else {
 
-            $line = $attr['line_id'];
+            $accId = $attr['account_id'];
+            $userId = auth()->user()->id;
 
+            $line = $attr['line_id'];
             $lineItem = Line::find($line);
 
             $date = Carbon::createFromDate($attr['year']);
@@ -349,7 +351,12 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                                   ->orWhere('end_budget', '=', $endOfYear);
                             });
                         })->get();
+            
+            $userAccess = Account::find($accId)->getUserAccess($userId);
+            $role = Account::find($accId)->getPivot($userId)->hasRole('admin');
 
+            if ($userAccess != '' && !$role && !in_array($line, $userAccess->line_id))
+                $budgets[0]['lines_budgets'] = [];
             return BudgetFarmsLinesByPeriodResource::collection($budgets);
         }
     }

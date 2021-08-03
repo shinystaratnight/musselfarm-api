@@ -16,7 +16,17 @@ class Task extends Model
                            'content',
                            'due_date',
                            'creator_id',
-                           'charger_id',
+                           'account_id',
+                           'assigned_to',
                            'active'];
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id', 'id');
+    }
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id', 'id');
+    }
 }

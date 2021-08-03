@@ -15,34 +15,17 @@ class TaskController extends Controller
     {
         $tasks = [];
         $account = auth()->user()->getAccount($request->input('account_id'));
-        if($account->pivot->roles[0]['name'] === 'owner') {
-            $users = Inviting::with('users')->where('inviting_user_id', auth()->user()->id)->get();
+        if($account->pivot->hasRole('owner') || $account->pivot->hasRole('admin')) {
 
-            $userIds = [ auth()->user()->id ];
-            foreach($users as $user) {
-                $userIds[] = $user->invited_user_id;
-            }
-
-            $tasks = Task::whereIn('creator_id', $userIds)->get();
-
-        } else if ($account->pivot->roles[0]['name'] === 'admin') {
-            
-            $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
-
-            $o = User::where('id', $owner['inviting_user_id'])->first();
-            $users = Inviting::with('users')->where('inviting_user_id', $o['id'])->get();
-
-            $userIds = [ $o['id'] ];
-            foreach($users as $user) {
-                $userIds[] = $user->invited_user_id;
-            }
-
-            $tasks = Task::whereIn('creator_id', $userIds)->get();
+            $tasks = Task::where('account_id', $request->input('account_id'))->get();
 
         } else {
 
-            $tasks = Task::where('creator_id', auth()->user()->id)
-                            ->orWhere('charger_id', auth()->user()->id)->get();
+            $tasks = Task::where('account_id', $request->input('account_id'))
+                        ->where(function ($q){
+                            $q->where('creator_id', auth()->user()->id)
+                                ->orWhere('assigned_to', auth()->user()->id)->get();
+                        })->get();
         }
 
         return response()->json([
@@ -57,10 +40,11 @@ class TaskController extends Controller
 
         $task = Task::create([
             'creator_id' => auth()->user()->id,
+            'account_id' => $attr['account_id'],
             'farm_id' => $attr['farm_id'],
             'title' => $attr['title'],
             'content' => $attr['content'],
-            'charger_id' => $attr['charger_id'],
+            'assigned_to' => $attr['assigned_to'],
             'line_id' => $attr['line_id'],
             'due_date' => $attr['due_date'],
         ]);
@@ -76,7 +60,7 @@ class TaskController extends Controller
 
         $task->farm_id = $attr['farm_id'];
         $task->line_id = $attr['line_id'];
-        $task->charger_id = $attr['charger_id'];
+        $task->assigned_to = $attr['assigned_to'];
         $task->title = $attr['title'];
         $task->content = $attr['content'];
         $task->due_date = $attr['due_date'];

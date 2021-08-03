@@ -28,6 +28,7 @@ class YearlyBudgetRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:accounts,id',
             'farm_id' => 'nullable|exists:farms,id',
             'line_id' => 'nullable|exists:lines,id',
             'year' => 'required|date_format:Y|numeric'

@@ -32,6 +32,7 @@ class TrialUpdateRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:account,id',
             'quantity' => 'required|numeric',
             'coupon' => 'required|string',
         ];

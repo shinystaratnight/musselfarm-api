@@ -28,6 +28,7 @@ class HarvestCompleteRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:accounts,id',
             'harvest_group_id' => 'required|numeric|exists:harvest_groups,id',
             'planned_harvest_tones_actual' => 'numeric|nullable',
             'budgeted_harvest_income_actual' => 'numeric|nullable',

@@ -39,6 +39,7 @@ class BudgetLogMiddleware
 
         BudgetLog::create([
             'user_id' => auth()->user()->id,
+            'account_id' => $request->input('account_id'),
             'farm_id' => $request->input('farm_id'),
             'line_id' => $request->input('line_id'),
             'line_budget_id' => $request->input('budget_id'),

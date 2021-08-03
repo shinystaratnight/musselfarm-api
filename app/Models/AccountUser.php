@@ -13,17 +13,11 @@ class AccountUser extends Pivot
     use HasFactory, HasRoles;
 
     protected $guard_name = 'web';
+    protected $primaryKey = 'id'; 
+    public $incrementing = true;
 
     protected $fillable = [
                             'user_id',
                             'account_id',
                             'user_access'];
-
-    public function hasRole($user_id, $acc_id, $role) {
-        $r = AccountUser::with('roles')->whereHas('roles', function($q) use($role) {
-            $q->where('roles.name', $role);
-        })->where('user_id', auth()->user()->id)->where('account_id', $acc)->get();
-        if ($r) return true;
-        return false;
-    }
 }

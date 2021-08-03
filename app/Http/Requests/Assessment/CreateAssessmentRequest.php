@@ -28,6 +28,7 @@ class CreateAssessmentRequest extends FormRequest
     public function rules()
     {
         return [
+            'account_id' => 'required|exists:accounts,id',
             'harvest_group_id' => 'required|numeric|exists:harvest_groups,id',
             'color' => 'nullable',
             'condition_min' => 'nullable|numeric',

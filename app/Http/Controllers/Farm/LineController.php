@@ -64,6 +64,5 @@ class LineController extends Controller
         $line->delete();
 
         return response()->json(['message' => 'Success'], 200);
-//        return new LineResource($deletedLine);
     }
 }

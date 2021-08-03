@@ -28,13 +28,13 @@ class TaskRequest extends FormRequest
     public function rules()
     {
         return [
-            'account_id' => 'required|exists:account,id',
+            'account_id' => 'required|exists:accounts,id',
             'farm_id' => 'required|numeric',
             'line_id' => 'required|numeric',
             'title' => 'required|string',
             'content' => 'string|nullable',
             'due_date' => 'required|numeric',
-            'charger_id' => 'numeric',
+            'assigned_to' => 'numeric',
             'active' => 'numeric',
         ];
     }

@@ -13,7 +13,7 @@ class BudgetLogRepository implements BudgetLogRepositoryInterface
     {
         $logs = BudgetLog::whereHas('users', function($q) {
                         $q->where('user_id', '=', auth()->user()->id);
-                    })->orderBy('created_at', 'DESC')->paginate(request()->input('page_size'), '*', 'page', request()->input('current_page'));
+                    })->where('account_id', request()->input('account_id'))->orderBy('created_at', 'DESC')->paginate(request()->input('page_size'), '*', 'page', request()->input('current_page'));
 
         return BudgetLogsResource::collection($logs);
     }

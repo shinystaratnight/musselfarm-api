@@ -14,12 +14,7 @@ class AutomationController extends Controller
 {
     public function index(Request $request)
     {
-        $automations = [];
-        $inviterId = $request->exists('inviter') ? $request->input('inviter') : 0;
-
-        $userIds = auth()->user()->getProfileUserIds($inviterId);
-
-        $automations = Automation::whereIn('creator_id', $userIds)->get();
+        $automations = Automation::where('account_id', $request->input('account_id'))->get();
         
         return response()->json([
             'status' => 'success',
@@ -34,14 +29,15 @@ class AutomationController extends Controller
         $aut = [
             'creator_id' => auth()->user()->id,
             'condition' => $attr['condition'],
+            'account_id' => $attr['account_id'],
             'action' => $attr['action'],
             'time' => $attr['time'],
             'title' => $attr['title'],
             'unit' => $attr['unit'],
             'description' => $attr['description'],
         ];
-        if ($attr['charger_id'] > 0) {
-            $aut['charger_id'] = $attr['charger_id'];
+        if ($attr['assigned_to'] > 0) {
+            $aut['assigned_to'] = $attr['assigned_to'];
         }
 
         $task = Automation::create($aut);
@@ -66,8 +62,8 @@ class AutomationController extends Controller
         $automation->title = $attr['title'];
         $automation->unit = $attr['unit'];
         $automation->description = $attr['description'];
-        if ($attr['charger_id'] > 0) {
-            $automation->charger_id = $attr['charger_id'];
+        if ($attr['assigned_to'] > 0) {
+            $automation->assigned_to = $attr['assigned_to'];
         }
 
         $automation->save();

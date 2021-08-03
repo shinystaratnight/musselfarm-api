@@ -9,20 +9,28 @@ class BudgetLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id',
-                           'farm_id',
-                           'line_id',
-                           'line_budget_id',
-                           'expenses_id',
-                           'row_name',
-                           'human_name',
-                           'old',
-                           'new',
-                           'comment'];
+    protected $fillable = [
+        'user_id',
+        'account_id',
+        'farm_id',
+        'line_id',
+        'line_budget_id',
+        'expenses_id',
+        'row_name',
+        'human_name',
+        'old',
+        'new',
+        'comment'
+    ];
 
     public function users()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function accounts()
+    {
+        return $this->belongsTo(Account::class, 'account_id', 'id');
     }
 
     public function farms()

@@ -28,6 +28,7 @@ class CreateHarvestGroupRequest extends FormRequest
     public function rules()
     {
         return [
+            "account_id" => 'required|exists:accounts,id',
             "line_id" => 'required|numeric|exists:lines,id',
             "name" => 'required|numeric|exists:seasons,id',
             "planned_date" => 'required|numeric',

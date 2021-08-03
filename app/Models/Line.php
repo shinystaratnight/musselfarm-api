@@ -41,18 +41,7 @@ class Line extends Model
 
     public function budgets()
     {
-//        $date = Carbon::createFromDate(request()->input('year'));
-//
-//        $startOfYear = $date->copy()->startOfYear()->timestamp;
-//
-//        $endOfYear = $date->copy()->endOfYear()->startOfDay()->timestamp;
-//        $startOfYear = Carbon::parse('first day of January ' . $date)->timestamp;
-//
-//        $endOfYear = Carbon::parse('last day of December ' . $date)->timestamp;
-//        dd($startOfYear, $endOfYear);
-        return $this->hasMany(LineBudget::class)
-//            ->where('start_budget', $startOfYear)->orWhere('end_budget', $endOfYear)
-        ->with('expenses');
+        return $this->hasMany(LineBudget::class)->with('expenses');
     }
 
     public function overview_budgets()
