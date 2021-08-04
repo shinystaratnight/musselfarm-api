@@ -31,9 +31,6 @@ class LineRequest extends FormRequest
             'farm_id' => 'required|numeric|exists:farms,id',
             'line_name' => 'required',
             'length' => 'numeric'
-//            'seeded_date' => 'numeric',
-//            'planned_date' => 'numeric',
-//            'seed_id' => 'numeric|exists:seeds,id'
         ];
     }
 

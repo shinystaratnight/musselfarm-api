@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\FarmUtil;
 use App\Http\Requests\Util\UtilRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class UtilController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        $utils = FarmUtil::where('user_id', $user->id)->get();
+        $utils = FarmUtil::where('user_id', $user->id)->where('account_id', $request->input('account_id'))->get();
 
         return response()->json([
             'status' => 'success',
@@ -25,6 +26,7 @@ class UtilController extends Controller
 
         $util = FarmUtil::create([
             'user_id' => auth()->user()->id,
+            'account_id' => $attr['account_id'],
             'name' => $attr['name'],
             'type' => $attr['type'],
         ]);

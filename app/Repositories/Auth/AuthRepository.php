@@ -124,8 +124,9 @@ class AuthRepository implements AuthRepositoryInterface
             ['name' => 'D-Maintenance2', 'type' =>'maintenance'],
             ['name' => 'D-Maintenance3', 'type' =>'maintenance'],
         ];
-        $farmUtils = array_map(function ($util) use ($user) {
+        $farmUtils = array_map(function ($util) use ($user, $account) {
             $util['user_id'] = $user->id;
+            $util['account_id'] = $account->id;
             return $util;
         }, $defaultFarmsUtilData);
 
@@ -133,19 +134,6 @@ class AuthRepository implements AuthRepositoryInterface
 
         return redirect( config('services.api.front_end_url') . '/sign-in/checked');
     }
-
-    public function getUserRolePermissions($attr)
-    {
-        dd(auth()->user()->roles);
-        return auth()->user()->roles;
-    }
-
-    public function updateUserRolePermissions()
-    {
-
-    }
-
-
 
     public function inviteRegister($attr)
     {

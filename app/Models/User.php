@@ -62,11 +62,6 @@ class User extends Authenticatable
         return $this->belongsToMany(Invite::class, 'user_id', 'id');
     }
 
-    public function inviting()
-    {
-        return $this->hasMany(Inviting::class,'inviting_user_id', 'id');
-    }
-
     public function accounts()
     {
         return $this->belongsToMany(Account::class, 'account_user', 'user_id', 'account_id')->withPivot('id', 'user_access')->using('App\Models\AccountUser');
@@ -86,15 +81,6 @@ class User extends Authenticatable
     // {
     //     return $this->belongsToMany(Line::class)->withPivot('user_id');
     // }
-
-    public function getOwner()
-    {
-        $owner = Inviting::where('invited_user_id', auth()->user()->id)->first();
-
-        $user = User::find($owner->inviting_user_id);
-
-        return $user;
-    }
 
     public function getAccount($acc_id = 0)
     {

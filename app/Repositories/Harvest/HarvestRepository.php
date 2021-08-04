@@ -7,6 +7,7 @@ use App\Models\HarvestGroup;
 use App\Models\Line;
 use App\Models\User;
 use App\Models\Task;
+use App\Models\Account;
 use App\Models\Automation;
 use App\Models\LineBudget;
 use App\Traits\CheckDatesHarvestsTrait;
@@ -37,8 +38,7 @@ class HarvestRepository implements HarvestRepositoryInterface
             ]);
 
             // automation task start
-            $profileUserIds = auth()->user()->getProfileUserIds();
-            $automations = Automation::whereIn('creator_id', $profileUserIds)->get();
+            $automations = Automation::where('account_id', $attr['account_id'])->get();
 
             $currentLine = Line::find($attr['line_id']);
             foreach($automations as $automation) {
@@ -58,9 +58,9 @@ class HarvestRepository implements HarvestRepositoryInterface
                     }
                 }
 
-                $access = User::find($automation->creator_id)->checkUserFarmAccess($attr['line_id']);
-                if ($automation->charger_id && $access) {
-                    $access = User::find($automation->charger_id)->checkUserFarmAccess($attr['line_id']);
+                $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $attr['line_id']);
+                if ($automation->assigned_to && $access) {
+                    $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->assigned_to, 'line', $attr['line_id']);
                 }
             
                 if (
@@ -71,11 +71,12 @@ class HarvestRepository implements HarvestRepositoryInterface
                 ) {
                     if ($access) {
                         $task = Task::create([
-                            'creator_id' => auth()->user()->id,
+                            'account_id' => $attr['account_id'],
+                            'creator_id' => $automation->creator_id,
                             'farm_id' => $currentLine->farm_id,
                             'title' => $automation->title,
                             'content' => $automation->description,
-                            'charger_id' => $automation->charger_id ? $automation->charger_id : 0,
+                            'assigned_to' => $automation->assigned_to ? $automation->assigned_to : 0,
                             'line_id' => $attr['line_id'],
                             'due_date' => $due_date,
                         ]);

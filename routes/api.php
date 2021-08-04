@@ -14,7 +14,6 @@ use App\Http\Controllers\User\UserProfileController;
 use \App\Http\Controllers\User\ChangeUserPasswordController;
 use \App\Http\Controllers\User\ChangeUserEmailController;
 use \App\Http\Controllers\Farm\FarmController;
-use \App\Http\Controllers\Farm\SeedController;
 use \App\Http\Controllers\Farm\AssessmentController;
 use \App\Http\Controllers\Farm\HarvestGroupController;
 use \App\Http\Controllers\Budget\LineBudgetController;
@@ -176,11 +175,6 @@ Route::group(['middleware' => 'auth:api'], function ()
             Route::group(['prefix' => 'assessment'], function() {
                Route::resource('assessments', AssessmentController::class);
             });
-        });
-
-        // Seed routes
-        Route::group(['prefix' => 'seed'], function() {
-            Route::resource('seeds', SeedController::class);
         });
     });
 

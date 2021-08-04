@@ -28,9 +28,9 @@ class LineBudgetController extends Controller
         $this->budgetRepo = $budget;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return $this->budgetRepo->getUserFarmsBudget();
+        return $this->budgetRepo->getUserFarmsBudget($request->input('account_id'));
     }
 
     public function store(CreateBudgetForLineRequest $request)
