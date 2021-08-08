@@ -81,6 +81,26 @@ class AuthController extends Controller
 
     }
 
+    public function invitationToExistingUserRedirect()
+    {
+        $inviteData = request()->all();
+
+        $now = Carbon::now()->timestamp;
+
+        $tokenCheck = Invite::where('token', $inviteData['token'])->first();
+
+        if(($inviteData['expires'] >= $now) && !empty($tokenCheck->id)) {
+
+            $this->authRepo->inviteAccept(request()->all());
+
+            return redirect(config('services.api.front_end_url') . '/sign-in/invite-accept' );
+
+        } else {
+            return response()->json(['status' => 'Error',
+                                     'message' => 'Invitation has expired or has wrong token'], 404);
+        }
+    }
+
 //    public function invitedSignup(Request $request)
 //    {
 //        dd($request->all());

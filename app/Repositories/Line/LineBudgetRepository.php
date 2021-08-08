@@ -90,7 +90,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                                 }]);
                             })->get();
         } else {
-            $budgets = Farm::whereIn('account_id', $acc_id)->with('lines', function($q) {
+            $budgets = Farm::where('account_id', $acc_id)->with('lines', function($q) {
                 $q->with(['overview_budgets' => function($r) {
                     $r->orderByRaw("CASE WHEN end_budget = 0 THEN 0 ELSE 1 END ASC")
                         ->orderBy('start_budget', 'DESC');

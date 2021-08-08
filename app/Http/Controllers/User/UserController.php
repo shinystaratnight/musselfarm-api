@@ -2,30 +2,31 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Http\Resources\User\UserResource;
 use App\Http\Requests\Invite\UserInviteRequest;
 use App\Http\Requests\Invite\DeactivateInviteUserRequest;
-use App\Http\Requests\Permission\UpdateRolePermissionRequest;
-use App\Http\Resources\User\UserResource;
-use App\Http\Resources\Invited\InvitedUserResource;
 use App\Http\Resources\Invited\RolePermResource;
-use App\Models\Invite;
-use App\Models\Inviting;
-use App\Models\Account;
+use App\Http\Resources\Invited\InvitedUserResource;
+use App\Http\Requests\Permission\UpdateRolePermissionRequest;
 use App\Models\User;
+use App\Models\Invite;
+use App\Models\Account;
+use App\Models\Inviting;
+use App\Models\AccountUser;
 use App\Models\UserProfile;
 use App\Notifications\InviteNotification;
 use App\Repositories\Auth\InvitationRepositoryInterface as Invitation;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Routing\UrlGenerator;
 use App\Http\Controllers\Controller;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -43,23 +44,17 @@ class UserController extends Controller
         );
     }
 
-    public function show(User $user)
-    {
-        return new UserResource($user);
-    }
-
-
     public function destroyPendingUser(Request $request)
     {
         if(filter_var($request->attr, FILTER_VALIDATE_EMAIL)) {
 
-            $invite = Invite::where('email', $request->attr)->first();
+            $invite = Invite::where('email', $request->attr)->where('inviting_account_id', $request->input('account_id'))->first();
 
             if($invite) {
                 $invite->delete();
             }
 
-            $inviting = Inviting::where('email', $request->attr)->first();
+            $inviting = Inviting::where('email', $request->attr)->where('inviting_account_id', $request->input('account_id'))->first();
 
             if($inviting) {
                 $inviting->delete();
@@ -74,9 +69,11 @@ class UserController extends Controller
             if($user) {
                 $user->forceDelete();
 
-                $invite = Invite::where('email', $user->email)->first();
+                $invite = Invite::where('email', $user->email)->where('inviting_account_id', $request->input('account_id'))->first();
 
-                $invite->delete();
+                if ($invite) {
+                    $invite->delete();
+                }
             }
 
             return response()->json(['status' => 'success'], 200);
@@ -116,7 +113,7 @@ class UserController extends Controller
 
         UserProfile::withTrashed()->where('user_id', $attr['user_id'])->restore();
 
-        Inviting::where('invited_user_id', $attr['user_id'])->update(['status' => 'active']);
+        Inviting::where('invited_user_id', $attr['user_id'])->where('inviting_account_id', $attr['account_id'])->update(['status' => 'active']);
 
         return response()->json(['message' => 'success'],200);
     }
@@ -132,17 +129,26 @@ class UserController extends Controller
     {
         $inviters = Inviting::where('invited_user_id', auth()->user()->id)->get()->toArray();
 
-        $users = User::whereIn('id', array_map(function($inviter) {
-            return $inviter['inviting_user_id'];
-        }, $inviters))->get()->toArray();
-
-        $userList = array_map(function($user) {
-            return array(
+        $userList = [];
+        foreach ($inviters as $inviter) {
+            $user = User::find($inviter['inviting_user_id']);
+            $userList[] = [
                 'email' => $user['email'],
-                'id' => $user['id']
-            );
-        }, $users);
+                'role' => auth()->user()->getAccount($inviter['inviting_account_id'])->pivot->roles[0]['name'],
+                'id' => $user['id'],
+                'acc_id' => $inviter['inviting_account_id']
+            ];
+        }
 
+        if (!$inviters) {
+            $acc = Account::where('owner_id', auth()->user()->id);
+            $userList[] = [
+                'email' => auth()->user()->email,
+                'role' => auth()->user()->getAccount($acc->id)->pivot->roles[0]['name'],
+                'id' => auth()->user()->id,
+                'acc_id' => $acc->id
+            ];
+        }
         return response()->json(['inviters' => $userList], 200);
     }
 
@@ -161,7 +167,7 @@ class UserController extends Controller
 
         $permissions = [];
 
-        $user = User::where('id', $attr['user_id'])->first();
+        $user = User::where('id', $attr['user_id'])->first()->getAccount($attr['account_id']);
 
         if ($user) {
 
@@ -177,20 +183,26 @@ class UserController extends Controller
             if (isset($attr['role_id'])) {
                 $role = Role::find($attr['role_id']);
 
-                $user->syncRoles($role);
+                $user->pivot->syncRoles($role);
             }
 
-            if (!empty($permissions)) {
-                $user->syncPermissions($permissions);
+            $inviting = Inviting::where('inviting_account_id', $attr['account_id'])->where('invited_user_id', $attr['user_id'])->first();
+
+            $user_access = json_decode($inviting->user_access);
+            if (isset($attr['role_id'])) {
+                $user_access->role_id = $attr['role_id'];
             }
 
-            if (isset($attr['farm_id'])) {
-                $user->farms()->sync($attr['farm_id']);
-            }
-            // TODO add detach for farms and lines
-            if (isset($attr['line_id'])) {
-                $user->lines()->sync($attr['line_id']);
-            }
+            $user_access->farm_id = $attr['farm_id'];
+            $user_access->line_id = $attr['line_id'];
+            $user_access->permission_id = $attr['permission_id'];
+            
+            $inviting->user_access = json_encode($user_access);
+            $inviting->save();
+
+            $user->pivot->user_access = json_encode($user_access);
+            $user->pivot->save();
+
             return response()->json(['message' => 'success'], 200);
         } else {
             return response()->json(['message' => 'User not found'], 404);

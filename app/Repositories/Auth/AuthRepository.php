@@ -11,6 +11,7 @@ use Stripe\StripeClient;
 use App\Models\Invite;
 use App\Models\Inviting;
 use App\Models\User;
+use App\Models\Farm;
 use App\Models\Account;
 use App\Models\UserProfile;
 use App\Services\InvoicesService;
@@ -46,11 +47,6 @@ class AuthRepository implements AuthRepositoryInterface
                 'user_id' => $user->id,
                 'name' => $attr['name']
             ]);
-
-            $user->assignRole('owner');
-            $user->givePermissionTo('view');
-            $user->givePermissionTo('edit');
-            $user->givePermissionTo('finance');
         }
 
         $user->notify(new SignupActivate($user));
@@ -111,8 +107,10 @@ class AuthRepository implements AuthRepositoryInterface
         $user->quantity = 1;
 
         $account = Account::create([]);
+        $account->owner_id = $user->id;
+        $account->save();
         $user->account_id = $account->id;
-        $user->getAccounts()->attach($account->id);
+        $user->accounts()->attach($account->id);
         $user->save();
 
         // Set Default Farms Util
@@ -131,6 +129,14 @@ class AuthRepository implements AuthRepositoryInterface
         }, $defaultFarmsUtilData);
 
         FarmUtil::insert($farmUtils);
+
+        $ua_pivot = $user->getAccount($account->id)->pivot;
+
+        $ua_pivot->assignRole('owner');
+        $ua_pivot->givePermissionTo('view');
+        $ua_pivot->givePermissionTo('edit');
+        $ua_pivot->givePermissionTo('finance');
+
 
         return redirect( config('services.api.front_end_url') . '/sign-in/checked');
     }
@@ -160,7 +166,8 @@ class AuthRepository implements AuthRepositoryInterface
 
                 if (!empty($invite->id)) {
 
-                    $owner = User::find($inviting->inviting_user_id);
+                    $acc_id = $inviting['inviting_account_id'];
+
                     $user = User::create([
                         'name' => $attr['name'],
                         'email' => $attr['email'],
@@ -168,7 +175,7 @@ class AuthRepository implements AuthRepositoryInterface
                         'active' => true,
                         'coupon' => $attr['coupon'],
                         'quantity' => 1,
-                        'account_id' => $owner->account_id
+                        'account_id' => $acc_id
                     ]);
 
                     if ($user) {
@@ -183,21 +190,22 @@ class AuthRepository implements AuthRepositoryInterface
                             'status' => 'active'
                         ]);
 
-                        $role = Role::find($data->role_id);
+                        $user->accounts()->attach($acc_id);
 
-                        $user->assignRole($role->name);
+                        $ua_pivot = $user->getAccount($acc_id)->pivot;
+                        $ua_pivot->user_access = $inviting['user_access'];
+                        $ua_pivot->save();
+
+                        $role = Role::find($data->role_id);
+                        $ua_pivot->assignRole($role->name);
 
                         if (!empty($data->farm_id)) {
-                            $user->farms()->attach($data->farm_id);
-                        }
-
-                        if (!empty($data->line_id)) {
-                            $user->lines()->attach($data->line_id);
+                            Account::find($acc_id)->farms()->saveMany(Farm::whereIn('id', $data->farm_id)->get());
                         }
 
                         if (!empty($permissions)) {
                             foreach ($permissions as $key => $permission) {
-                                $user->givePermissionTo($permission);
+                                $ua_pivot->givePermissionTo($permission);
                             }
                         }
                     }
@@ -209,6 +217,62 @@ class AuthRepository implements AuthRepositoryInterface
         } else {
             return response()->json(['status' => 'Error',
                                         'message' => 'Invited user has another email address'], 404);
+        }
+    }
+
+    public function inviteAccept($attr)
+    {
+        $invite = Invite::where('token', $attr['token'])->first();
+
+        if($invite->email === $attr['email']) {
+
+            if ($invite) {
+
+                $inviting = Inviting::where('token', $attr['token'])->first();
+
+                $data = json_decode($inviting['user_access']);
+
+                $permissions = [];
+
+                if (!empty($data->permission_id)) {
+                    foreach ($data->permission_id as $key => $permission_id) {
+
+                        $name = Permission::find($permission_id);
+
+                        $permissions[] = $name['name'];
+                    }
+                }
+
+                if (!empty($invite->id)) {
+
+                    $acc_id = $inviting['inviting_account_id'];
+
+                    $invited_user = User::where('email', $attr['email'])->first();
+                    $invited_user->accounts()->attach($acc_id);
+
+                    $inviting->update([
+                        'invited_user_id' => $invited_user->id,
+                        'status' => 'active'
+                    ]);
+
+                    $ua_pivot = $invited_user->getAccount($acc_id)->pivot;
+                    $ua_pivot->user_access = $inviting['user_access'];
+                    $ua_pivot->save();
+
+                    $role = Role::find($data->role_id);
+                    $ua_pivot->assignRole($role->name);
+
+                    if (!empty($data->farm_id)) {
+                        Account::find($acc_id)->farms()->saveMany(Farm::whereIn('id', $data->farm_id)->get());
+                    }
+
+                    if (!empty($permissions)) {
+                        foreach ($permissions as $key => $permission) {
+                            $ua_pivot->givePermissionTo($permission);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -290,5 +354,3 @@ class AuthRepository implements AuthRepositoryInterface
         }
     }
 }
-
-

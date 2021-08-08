@@ -9,6 +9,7 @@ use App\Models\Automation;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Line;
+use App\Models\Account;
 use App\Http\Resources\Assessment\AssessmentResource;
 use Carbon\Carbon;
 
@@ -47,26 +48,28 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             $farm_id = $currentLine->farm_id;
 
             // automation task start
-            $profileUserIds = auth()->user()->getProfileUserIds();
             $automations = Automation::where([
                 'condition' => 'Assessment',
-            ])->whereIn('creator_id', $profileUserIds)->get();
+                'account_id' => $attr['account_id']
+            ])->get();
 
             foreach($automations as $automation) {
                 
                 $due_date = $due_date = Carbon::now()->add($automation->time, $automation->unit)->timestamp * 1000;
 
-                $access = User::find($automation->creator_id)->checkUserFarmAccess($harvest->line_id);
-                if ($automation->charger_id && $access) {
-                    $access = User::find($automation->charger_id)->checkUserFarmAccess($harvest->line_id);
+                $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $harvest->line_id);
+                if ($automation->assigned_to && $access) {
+                    $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->assigned_to, 'line', $harvest->line_id);
                 }
+
                 if ($access) {
                     $task = Task::create([
+                        'account_id' => $attr['account_id'],
                         'creator_id' => $automation->creator_id,
                         'farm_id' => $farm_id,
                         'title' => $automation->title,
                         'content' => $automation->description,
-                        'charger_id' => $automation->charger_id ? $automation->charger_id : 0,
+                        'assigned_to' => $automation->assigned_to ? $automation->assigned_to : 0,
                         'line_id' => $harvest->line_id,
                         'due_date' => $due_date,
                     ]);

@@ -48,6 +48,7 @@ Route::group(['prefix' => 'auth'], function()
     Route::get('invited-signup', [AuthController::class, 'invitedSignup'])->name('invited-register');
     Route::post('invite', [UserController::class, 'processInvites']);
     Route::get('invitation-redirect', [AuthController::class, 'invitationRedirect'])->name('inviting');
+    Route::get('invitation-to-exist-user-redirect', [AuthController::class, 'invitationToExistingUserRedirect'])->name('inviting-to-exist-user');
 
     Route::get('signup/activate/{token}', [AuthController::class, 'signupActivate']);
     Route::get('token-expired', [AuthController::class, 'tokenExpired'])->name('auth-token-expired');
