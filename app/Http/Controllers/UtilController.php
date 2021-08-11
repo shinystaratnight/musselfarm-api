@@ -53,4 +53,24 @@ class UtilController extends Controller
         $util->delete();
         return response()->json(['status' => 'success'], 200);
     }
+
+    public function allUtilsByUser(Request $request)
+    {
+        $user = auth()->user();
+        $accs = $user->accounts;
+
+        $utils = [];
+        foreach ($accs as $acc) {
+            $ac_utils = FarmUtil::where('account_id', $acc->id)->where('user_id', auth()->user()->id)->get()->toArray();
+            $utils = array_merge($utils, array_map(function($util) {
+                return [
+                    'id' =>  $util['id'],
+                    'name' =>  $util['name'],
+                    'type' =>  $util['type'],
+                    'account_id' =>  $util['account_id'],
+                ];
+            }, $ac_utils));
+        }
+        return response()->json($utils);
+    }
 }

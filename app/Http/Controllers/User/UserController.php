@@ -130,6 +130,17 @@ class UserController extends Controller
         $inviters = Inviting::where('invited_user_id', auth()->user()->id)->get()->toArray();
 
         $userList = [];
+
+        $acc = Account::where('owner_id', auth()->user()->id)->first();
+        if ($acc) {
+            $userList[] = [
+                'email' => auth()->user()->email,
+                'role' => auth()->user()->getAccount($acc->id)->pivot->roles[0]['name'],
+                'id' => auth()->user()->id,
+                'acc_id' => $acc->id
+            ];
+        }
+
         foreach ($inviters as $inviter) {
             $user = User::find($inviter['inviting_user_id']);
             $userList[] = [
@@ -140,15 +151,6 @@ class UserController extends Controller
             ];
         }
 
-        if (!$inviters) {
-            $acc = Account::where('owner_id', auth()->user()->id);
-            $userList[] = [
-                'email' => auth()->user()->email,
-                'role' => auth()->user()->getAccount($acc->id)->pivot->roles[0]['name'],
-                'id' => auth()->user()->id,
-                'acc_id' => $acc->id
-            ];
-        }
         return response()->json(['inviters' => $userList], 200);
     }
 

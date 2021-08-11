@@ -128,6 +128,7 @@ Route::group(['middleware' => 'auth:api'], function ()
 
     Route::group(['prefix' => 'farm'], function() {
         Route::resource('farms', FarmController::class);
+        Route::get('user-farms-all', [FarmController::class, 'allFarmsByUser']);
         Route::get('farms-all', [FarmController::class, 'allFarms']);
 
         // Add new farm expenses route
@@ -182,6 +183,7 @@ Route::group(['middleware' => 'auth:api'], function ()
     //Util routes
     Route::group(['prefix' => 'util'], function() {
         Route::resource('utils', UtilController::class);
+        Route::get('user-utils-all', [UtilController::class, 'allUtilsByUser']);
     });
     
     //Task routes

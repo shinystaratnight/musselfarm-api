@@ -50,11 +50,10 @@ class InvitationRepository implements InvitationRepositoryInterface
                                                 Carbon::now()->addDays(7),
                                                 ['token' => $token, 'email' => $attr['email']]);
 
-                return response()->json(['status' => $url], 200);
 
-                // Notification::route('mail', $attr['email'])->notify(new InviteNotification($url));
+                Notification::route('mail', $attr['email'])->notify(new InviteNotification($url));
 
-                // return response()->json(['status' => 'Success'], 200);
+                return response()->json(['status' => 'Success'], 200);
             } catch(\Exception $e) {
 
                 $invite->delete();
@@ -86,11 +85,9 @@ class InvitationRepository implements InvitationRepositoryInterface
                                                 Carbon::now()->addDays(7),
                                                 ['token' => $token, 'email' => $attr['email']]);
 
-                return response()->json(['status' => $url], 200);
+                Notification::route('mail', $attr['email'])->notify(new InviteNotification($url));
 
-                // Notification::route('mail', $attr['email'])->notify(new InviteNotification($url));
-
-                // return response()->json(['status' => 'Success'], 200);
+                return response()->json(['status' => 'Success'], 200);
 
             } catch(\Exception $e) {
 

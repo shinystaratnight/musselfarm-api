@@ -59,6 +59,11 @@ class FarmController extends Controller
         return $this->farmRepo->farms($request->input('account_id'));
     }
 
+    public function allFarmsByUser(Request $request)
+    {
+        return $this->farmRepo->farmsByUser();
+    }
+
     public function destroy(Request $request, Farm $farm)
     {
         $this->authorize('update', [
