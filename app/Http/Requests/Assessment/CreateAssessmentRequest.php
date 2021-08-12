@@ -33,7 +33,7 @@ class CreateAssessmentRequest extends FormRequest
             'color' => 'nullable',
             'condition_min' => 'nullable|numeric',
             'condition_max' => 'nullable|numeric',
-            'condition_average' => 'nullable|numeric',
+            'condition_avg' => 'nullable|numeric',
             'blues' => 'nullable|numeric',
             'condition_score' => 'numeric',
             'tones' => 'nullable|numeric|between:0.000,999999.999',
