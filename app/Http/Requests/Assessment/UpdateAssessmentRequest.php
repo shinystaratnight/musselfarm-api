@@ -31,6 +31,7 @@ class UpdateAssessmentRequest extends FormRequest
             'color' => 'nullable',
             'condition_min' => 'nullable|numeric',
             'condition_max' => 'nullable|numeric',
+            'condition_avg' => 'nullable',
             'blues' => 'nullable|numeric',
             'tones' => 'nullable|numeric|between:0.000,9999999.999',
             'date_assessment' => 'required|nullable|numeric',
