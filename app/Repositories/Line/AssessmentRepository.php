@@ -25,8 +25,8 @@ class AssessmentRepository implements AssessmentRepositoryInterface
         $assessment = Assessment::create([
             'harvest_group_id' => $attr['harvest_group_id'],
             'color' => $attr['color'],
-            'condition_min' => $attr['condition_min'],
-            'condition_max' => $attr['condition_max'],
+            'condition_min' => $attr['condition_min'] ? $attr['condition_min'] : 0,
+            'condition_max' => $attr['condition_max'] ? $attr['condition_max'] : 0,
             'condition_avg' => $average,
             'blues' => $attr['blues'],
             'tones' => $attr['tones'],
