@@ -42,12 +42,6 @@ class AssessmentController extends Controller
     {
         $assessment->update($request->validated());
 
-        $avg = ($assessment['condition_min'] + $assessment['condition_max']) / 2;
-
-        $avg = (int) round($avg);
-
-        $assessment->update(['condition_avg' => $avg]);
-
         $lastCreated = Assessment::where('harvest_group_id', $assessment['harvest_group_id'])->orderBy('created_at','DESC')->first();
 
         if($lastCreated->id == $assessment['id']) {
