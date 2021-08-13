@@ -12,23 +12,26 @@ class HarvestGroup extends Model
 
     protected $dateFormat = 'Y-m-d H:i:s';
 
-    protected $fillable = ['line_id',
-                           'name',
-                           'planned_date_harvest',
-                           'harvest_complete_date',
-                           'planned_date',
-                           'planned_date_original',
-                           'planned_date_harvest_original',
-                           'color',
-                           'seed_id',
-                           'condition',
-                           'profit_per_meter',
-                           'density',
-                           'drop',
-                           'spat_size',
-                           'floats',
-                           'spacing',
-                           'submersion'];
+    protected $fillable = [
+        'line_id',
+        'name',
+        'planned_date_harvest',
+        'harvest_complete_date',
+        'planned_date',
+        'planned_date_original',
+        'planned_date_harvest_original',
+        'color',
+        'seed_id',
+        'condition',
+        'profit_per_meter',
+        'density',
+        'drop',
+        'spat_size',
+        'floats',
+        'spacing',
+        'submersion',
+        'line_length'
+    ];
 
     protected $dates = [
         'created_at',

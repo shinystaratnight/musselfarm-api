@@ -31,6 +31,7 @@ class CreateHarvestGroupRequest extends FormRequest
             "account_id" => 'required|exists:accounts,id',
             "line_id" => 'required|numeric|exists:lines,id',
             "name" => 'required|numeric|exists:seasons,id',
+            "line_length" => 'required|integer',
             "planned_date" => 'required|numeric',
             "planned_date_harvest" => 'required|numeric',
             "seed_id" => 'required|numeric|exists:farm_utils,id',

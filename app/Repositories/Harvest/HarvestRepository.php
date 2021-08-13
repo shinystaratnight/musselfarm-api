@@ -32,6 +32,7 @@ class HarvestRepository implements HarvestRepositoryInterface
                 'density' => $attr['density'],
                 'drop' => $attr['drop'],
                 'spat_size' => $attr['spat_size'],
+                'line_length' => $attr['line_length'],
                 'floats' => $attr['floats'],
                 'spacing' => $attr['spacing'],
                 'submersion' => $attr['submersion'],
@@ -84,6 +85,8 @@ class HarvestRepository implements HarvestRepositoryInterface
                 }
             }
             // automation task end
+            $currentLine->length = $attr['line_length'];
+            $currentLine->update();
             return response()->json(['status' => 'Success'], 200);
 
         } else {

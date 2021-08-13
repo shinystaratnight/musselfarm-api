@@ -56,6 +56,10 @@ class HarvestGroupController extends Controller
 
         $harvest->save();
 
+        $currentLine = Line::find($harvest->line_id);
+        $currentLine->length = $attr['line_length'];
+        $currentLine->update();
+
         return response()->json(['status' => 'Success'], 200);
     }
 
@@ -135,7 +139,7 @@ class HarvestGroupController extends Controller
 
                 LineArchive::create([
                     'harvest_group_id' => $attr['harvest_group_id'],
-                    'length' => $archiveData->lines->length,
+                    'length' => $archiveData->line_length,
                     'planned_date_harvest' => $archiveData->planned_date_harvest,
                     'planned_date_harvest_original' => $archiveData->planned_date_harvest,
                     'planned_date' => $archiveData->planned_date,
@@ -189,7 +193,7 @@ class HarvestGroupController extends Controller
 
                 LineArchive::create([
                     'harvest_group_id' => $attr['harvest_group_id'],
-                    'length' => $archiveData->lines->length,
+                    'length' => $archiveData->line_length,
                     'planned_date_harvest' => $archiveData->planned_date_harvest,
                     'planned_date_harvest_original' => $archiveData->planned_date_harvest,
                     'planned_date' => $archiveData->planned_date,
