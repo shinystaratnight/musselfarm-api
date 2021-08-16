@@ -206,6 +206,29 @@ class HarvestGroupController extends Controller
 
         }
     }
+
+    public function checkHarvestExist(Request $request)
+    {
+        $farm = Farm::where('farm_number', $request->input('farm_no'))->first();
+        if (!$farm) {
+            return response()->json([
+                'res' => 'No Farm'
+            ]);
+        }
+        $line = Line::where('farm_id', $farm->id)->where('line_name', $request->input('line_name'))->first();
+        if (!$line) {
+            return response()->json([
+                'res' => 'No Line'
+            ]);
+        }
+        $harvestGroup = HarvestGroup::where('line_id', $line->id)
+                                    ->where('line_length', $request->input('length'))
+                                    ->where('drop', $request->input('drop'))
+                                    ->where('seed_id', $request->input('seed_id'))->get()->toArray();
+        return response()->json([
+            'res' => $harvestGroup ? $harvestGroup : 'New Seeding'
+        ]);
+    }
 }
 
 

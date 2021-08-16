@@ -173,6 +173,9 @@ Route::group(['middleware' => 'auth:api'], function ()
             // Harvest complete route
             Route::post('harvest-complete', [HarvestGroupController::class, 'harvestComplete'])->middleware('harvest_complete_log');
 
+            // Harvest resource search
+            Route::post('harvest-exist', [HarvestGroupController::class, 'checkHarvestExist']);
+
             // Assessment routes
             Route::group(['prefix' => 'assessment'], function() {
                Route::resource('assessments', AssessmentController::class);
