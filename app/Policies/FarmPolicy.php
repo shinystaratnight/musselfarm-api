@@ -15,8 +15,15 @@ class FarmPolicy
         try {
             $uac = $user->getAccount($acc_id)->pivot;
             $access = json_decode($uac->user_access);
+
+            $farm = Farm::find($line->farm_id);
+
+            if (!$farm) {
+                return $this->deny("Not found", 403);
+            }
+
             if ($access) {
-                if ($uac->hasRole('admin')) {
+                if ($uac->hasRole('admin') && $acc_id == $farm->account_id) {
                     return true;
                 }
                 if ($uac->hasPermissionTo('view') && in_array($farm->id, $access->farm_id)){
@@ -24,7 +31,9 @@ class FarmPolicy
                 }
                 return false;
             }
-            return true;
+            if ($acc_id == $farm->account_id)
+                return true;
+            return $this->deny("Not found", 403);
         } catch(Exception $e) {
             return false;
         }
@@ -35,8 +44,15 @@ class FarmPolicy
         try {
             $uac = $user->getAccount($acc_id)->pivot;
             $access = json_decode($uac->user_access);
+
+            $farm = Farm::find($line->farm_id);
+
+            if (!$farm) {
+                return $this->deny("Not found", 403);
+            }
+
             if ($access) {
-                if ($uac->hasRole('admin')) {
+                if ($uac->hasRole('admin') && $acc_id == $farm->account_id) {
                     return true;
                 }
                 if ($uac->hasPermissionTo('edit') && in_array($farm->id, $access->farm_id)){
@@ -44,7 +60,9 @@ class FarmPolicy
                 }
                 return false;
             }
-            return true;
+            if ($acc_id == $farm->account_id)
+                return true;
+            return $this->deny("Not found", 403);
         } catch(Exception $e) {
             return false;
         }
