@@ -65,7 +65,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         if(Auth::attempt(['email' => $attr['email'], 'password' => $attr['password'], 'active' => 1])) {
             $oClient = OClient::where('password_client', 1)->first();
-            return $this->getTokens($oClient, $attr['email'], $attr['password']);
+            return $this->getTokens($oClient, $attr['email'], $attr['password'], $attr['remember']);
 
         } else {
 
@@ -276,7 +276,7 @@ class AuthRepository implements AuthRepositoryInterface
         }
     }
 
-    public function getTokens(OClient $oClient, $email, $password)
+    public function getTokens(OClient $oClient, $email, $password, $remember)
     {
         $oClient = OClient::where('password_client', 1)->first();
 
@@ -287,6 +287,7 @@ class AuthRepository implements AuthRepositoryInterface
             $response = $http->post(config('services.api.api_url'), [
                 'form_params' => [
                     'grant_type' => 'password',
+                    'remember' => $remember,
                     'client_id' => $oClient->id,
                     'client_secret' => $oClient->secret,
                     'username' => $email,
