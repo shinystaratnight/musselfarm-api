@@ -180,6 +180,7 @@ Route::group(['middleware' => 'auth:api'], function ()
             Route::group(['prefix' => 'assessment'], function() {
                Route::resource('assessments', AssessmentController::class);
             });
+            Route::post('get-prev-assessment', [AssessmentController::class, 'getPrevAssessment']);
         });
     });
 

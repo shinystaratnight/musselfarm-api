@@ -77,4 +77,15 @@ class AssessmentController extends Controller
 
         return response()->json(['message' => 'Delete successfully'], 200);
     }
+
+    public function getPrevAssessment(Request $request)
+    {
+        $harvest_group_id = $request->input('harvest_group_id');
+        
+        $lastAssessment = Assessment::where('harvest_group_id', $harvest_group_id)->with(["harvests" => function($q){
+            $q->where('harvest_complete_date', 0);
+        }])->orderBy('created_at', 'DESC')->first();
+
+        return response()->json(['assessment' => $lastAssessment], 200);
+    }
 }
