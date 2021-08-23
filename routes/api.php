@@ -179,6 +179,7 @@ Route::group(['middleware' => 'auth:api'], function ()
             // Assessment routes
             Route::group(['prefix' => 'assessment'], function() {
                Route::resource('assessments', AssessmentController::class);
+               Route::post('add-assessments', [AssessmentController::class, 'addAssessmentsFromApp']);
             });
             Route::post('get-prev-assessment', [AssessmentController::class, 'getPrevAssessment']);
         });

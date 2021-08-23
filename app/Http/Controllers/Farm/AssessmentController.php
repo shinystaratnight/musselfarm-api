@@ -38,6 +38,11 @@ class AssessmentController extends Controller
         return $this->assessmentRepo->createAssessment($attr);
     }
 
+    public function addAssessmentsFromApp(Request $request)
+    {
+        return $this->assessmentRepo->createAssessmentFromApp($request);
+    }
+
     public function update(UpdateAssessmentRequest $request, Assessment $assessment)
     {
         $assessment->update($request->validated());
@@ -63,7 +68,7 @@ class AssessmentController extends Controller
 
         $lastAssessment = Assessment::where('harvest_group_id', $deletedAssessment->harvest_group_id)->with(["harvests" => function($q){
             $q->where('harvest_complete_date', 0);
-        }])->orderBy('created_at', 'DESC')->first();
+        }])->orderBy('id', 'DESC')->first();
 
         if($lastAssessment) {
             HarvestGroup::where(['id' => $deletedAssessment->harvest_group_id, 'harvest_complete_date' => 0])
@@ -84,7 +89,7 @@ class AssessmentController extends Controller
         
         $lastAssessment = Assessment::where('harvest_group_id', $harvest_group_id)->with(["harvests" => function($q){
             $q->where('harvest_complete_date', 0);
-        }])->orderBy('created_at', 'DESC')->first();
+        }])->orderBy('id', 'DESC')->first();
 
         return response()->json(['assessment' => $lastAssessment], 200);
     }

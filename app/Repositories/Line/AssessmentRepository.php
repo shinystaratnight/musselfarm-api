@@ -7,15 +7,18 @@ use App\Models\ChartData;
 use App\Models\HarvestGroup;
 use App\Models\Automation;
 use App\Models\Task;
+use App\Models\Farm;
 use App\Models\User;
 use App\Models\Line;
 use App\Models\Account;
 use App\Http\Resources\Assessment\AssessmentResource;
 use Carbon\Carbon;
+use SimpleXLSXGen;
+use App\Notifications\NewAssessment;
 
 class AssessmentRepository implements AssessmentRepositoryInterface
 {
-    public function createAssessment($attr)
+    public function createAssessment($attr, $return=false)
     {
         // $average = ($attr['condition_min'] + $attr['condition_max']) / 2;
         $average = $attr['condition_avg'];
@@ -77,14 +80,72 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             }
             // automation task end
             
-            return response()->json(['status' => 'Success'], 201);
+            if ($return) {
+                return 1;
+            } else {
+                return response()->json(['status' => 'Success'], 201);
+            }
         }
+    }
+
+    public function createAssessmentFromApp($request)
+    {
+        $data = $request->input('data');
+        $dataByUsers = array();
+        $res = array();
+        foreach ($data as $formData) {
+            // $this->createAssessment($formData);
+            if (!array_key_exists($formData['account_id'], $dataByUsers)) {
+                $dataByUsers[$formData['account_id']] = array();
+            }
+            $dataByUsers[$formData['account_id']][] = $formData;
+        }
+        foreach($dataByUsers as $userAssessData) {
+            $res[] = count($userAssessData);
+            $harvest = HarvestGroup::where('id', $userAssessData[0]['harvest_group_id'])->first();
+            $books = [
+                ['SiteNo', 'line', 'area', 'Seed', 'mtrs', 'drop', 'dateSeeded', 'Owner1', 'AssessDate', 'ConditionScore'
+                    , 'Colour', 'Min', 'Max', 'Avg', 'Blues', 'Tonnes', 'HarvestDate', 'Comment' ]
+            ];
+            foreach ($userAssessData as $assesData)  {
+                $farm = Farm::find($assesData['farm_id']);
+                $line = Line::find($assesData['line_id']);
+                $owner = json_decode($farm['owner']);
+                $books[] = [
+                    $farm['farm_number'],
+                    $line['line_name'],
+                    $farm['area'],
+                    $harvest->seed_id,
+                    $harvest->line_length,
+                    $harvest->drop,
+                    Carbon::createFromTimestamp(intval($harvest->planned_date))->format('Y-m-d'),
+                    $owner[0]->title,
+                    Carbon::createFromTimestamp(intval($assesData['date_assessment']))->format('Y-m-d'),
+                    $assesData['condition_score'],
+                    $assesData['color'],
+                    $assesData['condition_min'],
+                    $assesData['condition_max'],
+                    $assesData['condition_avg'],
+                    $assesData['blues'],
+                    $assesData['tones'],
+                    Carbon::createFromTimestamp(intval($assesData['planned_date_harvest']))->format('Y-m-d'),
+                    $assesData['comment'],
+                ];
+            }
+            $fname = 'assess_' . round(microtime(true) * 1000) . '_' . $assesData['account_id'] . '.xlsx';
+            $xlsx = SimpleXLSXGen::fromArray( $books );
+            $xlsx->saveAs($fname);
+            $user = User::find(Account::find($assesData['account_id'])['owner_id']);
+            $user->notify(new NewAssessment($fname));
+        }
+        // return response()->json(['status' => 'Success'], 201);
+        return response()->json(['status' => 'Error', 'a' => $res], 201);
     }
 
     public function getAssessments($attr)
     {
         $assessments = Assessment::where('line_id', $attr)->orderBy('created_at', 'DESC')->get();
 
-        return AssessmentResource::collection($assessments);
+        return AssessmentResource::collection($assessments, true);
     }
 }
