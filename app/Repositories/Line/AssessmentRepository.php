@@ -135,8 +135,9 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             $fname = 'assess_' . round(microtime(true) * 1000) . '_' . $assesData['account_id'] . '.xlsx';
             $xlsx = SimpleXLSXGen::fromArray( $books );
             $xlsx->saveAs($fname);
-            $user = User::find(Account::find($assesData['account_id'])['owner_id']);
-            $user->notify(new NewAssessment($fname));
+            $acc = Account::find($assesData['account_id']);
+            $user = User::find($acc['owner_id']);
+            // $user->notify(new NewAssessment($fname));
         }
         // return response()->json(['status' => 'Success'], 201);
         return response()->json(['status' => 'Error', 'a' => $res], 201);
