@@ -139,8 +139,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             $user = User::find($acc['owner_id']);
             $user->notify(new NewAssessment($fname));
         }
-        // return response()->json(['status' => 'Success'], 201);
-        return response()->json(['status' => 'Error', 'a' => $res], 201);
+        return response()->json(['status' => 'Success'], 201);
     }
 
     public function getAssessments($attr)
