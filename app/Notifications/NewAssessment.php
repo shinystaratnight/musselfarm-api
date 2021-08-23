@@ -43,8 +43,8 @@ class NewAssessment extends Notification
         return (new MailMessage)
             ->subject('New Assessment')
             ->line('New Assessment is added')
-            ->line('You can check details on attached file')
-            ->attach($path);
+            ->line('You can check details on attached file');
+            ->attach(public_path($path));
     }
 
     /**
