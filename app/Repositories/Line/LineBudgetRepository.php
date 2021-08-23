@@ -302,7 +302,7 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
                 $endOfYear = Carbon::parse('last day of December ' . $date)->timestamp;
 
-                $budgets = Farm::find('id')
+                $budgets = Farm::where('id', $farm)
                     ->with('lines', function ($q) use ($startOfYear, $endOfYear) {
                         $q->with('budgets', function ($r) use ($startOfYear, $endOfYear) {
                             $r->where('start_budget', $startOfYear)
@@ -347,16 +347,20 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
                         ->with('lines_budgets', function($f) use ($line, $endOfYear, $startOfYear){
                             $f->with('budgets', function($r)  use ($line, $endOfYear, $startOfYear){
                                 $r->where('line_id', '=', $line)
-                                  ->where('start_budget', '=', $startOfYear)
-                                  ->orWhere('end_budget', '=', $endOfYear);
+                                    ->where(function ($query) use ($startOfYear, $endOfYear){
+                                        $query->where('start_budget', '=', $startOfYear);
+                                        // $query->orWhere('end_budget', '=', $endOfYear);
+                                    });
                             });
                         })->get();
             
+
             $userAccess = Account::find($accId)->getUserAccess($userId);
             $role = Account::find($accId)->getPivot($userId)->hasRole('admin');
 
             if ($userAccess != '' && !$role && !in_array($line, $userAccess->line_id))
                 $budgets[0]['lines_budgets'] = [];
+
             return BudgetFarmsLinesByPeriodResource::collection($budgets);
         }
     }
