@@ -90,7 +90,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
 
     public function createAssessmentFromApp($request)
     {
-        $data = $request->input('data');
+        $data = (array)$request->input('data');
         $dataByUsers = array();
         $res = array();
         foreach ($data as $formData) {
@@ -137,7 +137,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             $xlsx->saveAs($fname);
             $acc = Account::find($assesData['account_id']);
             $user = User::find($acc['owner_id']);
-            // $user->notify(new NewAssessment($fname));
+            $user->notify(new NewAssessment($fname));
         }
         // return response()->json(['status' => 'Success'], 201);
         return response()->json(['status' => 'Error', 'a' => $res], 201);
