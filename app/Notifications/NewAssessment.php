@@ -11,14 +11,15 @@ class NewAssessment extends Notification
 {
     use Queueable;
 
+    protected $filePath;
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($filePath)
     {
-        //
+        $this->filePath = $filePath;
     }
 
     /**
@@ -38,13 +39,13 @@ class NewAssessment extends Notification
      * @param  mixed  $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
-    public function toMail($path)
+    public function toMail($notifiable)
     {
         return (new MailMessage)
             ->subject('New Assessment')
             ->line('New Assessment is added')
             ->line('You can check details on attached file')
-            ->attach(public_path($path));
+            ->attach(public_path($this->filePath));
     }
 
     /**
