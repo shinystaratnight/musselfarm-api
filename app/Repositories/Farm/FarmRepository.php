@@ -62,10 +62,28 @@ class FarmRepository implements FarmRepositoryInterface
                     'number' => $acFarm->farm_number,
                     'acc_id' => $acc->id,
                     'lines' => array_map(function($line) {
+                        $harvest_id = '';
+                        foreach ($line['harvests'] as $harvest) {
+                            if ($harvest['harvest_complete_date'] == 0)
+                                $harvest_id = $harvest['id'];
+                        }
+                        $latestAss = '';
+                        if ($harvest_id) {
+                            $ass = HarvestGroup::find($harvest_id)->assessments;
+                            if ($ass) {
+                                $latestAss = $ass[0];
+                                foreach ($ass as $el) {
+                                    if ($latestAss['date_assessment'] <= $el['date_assessment']) {
+                                        $latestAss = $el;
+                                    }
+                                }
+                            }
+                        }
                         return [
                             'id' => $line['id'],
                             'line_name' => $line['line_name'],
-                            'harvest_id' => $line['harvests'] ? $line['harvests'][0]['id'] : '',
+                            'harvest_id' => $harvest_id,
+                            'last_assess' => $latestAss,
                         ];
                     }, $alines),
                 ];
