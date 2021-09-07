@@ -70,13 +70,31 @@ class FarmRepository implements FarmRepositoryInterface
                         $latestAss = '';
                         if ($harvest_id) {
                             $ass = HarvestGroup::find($harvest_id)->assessments;
-                            if ($ass) {
+                            if (count($ass)) {
                                 $latestAss = $ass[0];
                                 foreach ($ass as $el) {
                                     if ($latestAss['date_assessment'] <= $el['date_assessment']) {
                                         $latestAss = $el;
                                     }
                                 }
+                            } else {
+                                $latestAss = [
+                                    "id" => "",
+                                    "harvest_group_id" => "",
+                                    "color" => "",
+                                    "condition_min" => "",
+                                    "condition_max" => "",
+                                    "condition_avg" => "",
+                                    "blues" => "",
+                                    "tones" => "",
+                                    "planned_date_harvest" => "",
+                                    "comment" => "",
+                                    "created_at" => "",
+                                    "updated_at" => "",
+                                    "deleted_at" => "",
+                                    "date_assessment" => "",
+                                    "condition_score" => ""
+                                ];
                             }
                         }
                         return [
