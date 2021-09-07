@@ -12,7 +12,7 @@ class UtilController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $utils = FarmUtil::where('user_id', $user->id)->where('account_id', $request->input('account_id'))->get();
+        $utils = FarmUtil::where('account_id', $request->input('account_id'))->get();
 
         return response()->json([
             'status' => 'success',
@@ -61,7 +61,7 @@ class UtilController extends Controller
 
         $utils = [];
         foreach ($accs as $acc) {
-            $ac_utils = FarmUtil::where('account_id', $acc->id)->where('user_id', auth()->user()->id)->get()->toArray();
+            $ac_utils = FarmUtil::where('account_id', $acc->id)->get()->toArray();
             $utils = array_merge($utils, array_map(function($util) {
                 return [
                     'id' =>  $util['id'],

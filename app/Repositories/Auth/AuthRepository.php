@@ -114,21 +114,21 @@ class AuthRepository implements AuthRepositoryInterface
         $user->save();
 
         // Set Default Farms Util
-        $defaultFarmsUtilData = [
-            ['name' => 'D-Seed1', 'type' =>'seed'],
-            ['name' => 'D-Seed2', 'type' =>'seed'],
-            ['name' => 'D-Seed3', 'type' =>'seed'],
-            ['name' => 'D-Maintenance1', 'type' =>'maintenance'],
-            ['name' => 'D-Maintenance2', 'type' =>'maintenance'],
-            ['name' => 'D-Maintenance3', 'type' =>'maintenance'],
-        ];
-        $farmUtils = array_map(function ($util) use ($user, $account) {
-            $util['user_id'] = $user->id;
-            $util['account_id'] = $account->id;
-            return $util;
-        }, $defaultFarmsUtilData);
+        // $defaultFarmsUtilData = [
+        //     ['name' => 'D-Seed1', 'type' =>'seed'],
+        //     ['name' => 'D-Seed2', 'type' =>'seed'],
+        //     ['name' => 'D-Seed3', 'type' =>'seed'],
+        //     ['name' => 'D-Maintenance1', 'type' =>'maintenance'],
+        //     ['name' => 'D-Maintenance2', 'type' =>'maintenance'],
+        //     ['name' => 'D-Maintenance3', 'type' =>'maintenance'],
+        // ];
+        // $farmUtils = array_map(function ($util) use ($user, $account) {
+        //     $util['user_id'] = $user->id;
+        //     $util['account_id'] = $account->id;
+        //     return $util;
+        // }, $defaultFarmsUtilData);
 
-        FarmUtil::insert($farmUtils);
+        // FarmUtil::insert($farmUtils);
 
         $ua_pivot = $user->getAccount($account->id)->pivot;
 
