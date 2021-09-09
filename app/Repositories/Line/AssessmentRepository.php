@@ -88,63 +88,6 @@ class AssessmentRepository implements AssessmentRepositoryInterface
         }
     }
 
-    public function createAssessmentFromApp($request)
-    {
-        $data = (array)$request->input('data');
-        $emailNotify = $request->input('email');
-        $dataByUsers = array();
-        $res = array();
-        foreach ($data as $formData) {
-            $this->createAssessment($formData);
-            if (!array_key_exists($formData['account_id'], $dataByUsers)) {
-                $dataByUsers[$formData['account_id']] = array();
-            }
-            $dataByUsers[$formData['account_id']][] = $formData;
-        }
-        if ($emailNotify) {
-            foreach($dataByUsers as $userAssessData) {
-                $res[] = count($userAssessData);
-                $harvest = HarvestGroup::where('id', $userAssessData[0]['harvest_group_id'])->first();
-                $books = [
-                    ['SiteNo', 'line', 'area', 'Seed', 'mtrs', 'drop', 'dateSeeded', 'Owner1', 'AssessDate', 'ConditionScore'
-                        , 'Colour', 'Min', 'Max', 'Avg', 'Blues', 'Tonnes', 'HarvestDate', 'Comment' ]
-                ];
-                foreach ($userAssessData as $assesData)  {
-                    $farm = Farm::find($assesData['farm_id']);
-                    $line = Line::find($assesData['line_id']);
-                    $owner = json_decode($farm['owner']);
-                    $books[] = [
-                        $farm['farm_number'],
-                        $line['line_name'],
-                        $farm['area'],
-                        $harvest->seed_id,
-                        $harvest->line_length,
-                        $harvest->drop,
-                        Carbon::createFromTimestamp(intval($harvest->planned_date))->format('Y-m-d'),
-                        $owner[0]->title,
-                        Carbon::createFromTimestamp(intval($assesData['date_assessment']))->format('Y-m-d'),
-                        $assesData['condition_score'],
-                        $assesData['color'],
-                        $assesData['condition_min'],
-                        $assesData['condition_max'],
-                        $assesData['condition_avg'],
-                        $assesData['blues'],
-                        $assesData['tones'],
-                        Carbon::createFromTimestamp(intval($assesData['planned_date_harvest']))->format('Y-m-d'),
-                        $assesData['comment'],
-                    ];
-                }
-                $fname = 'assess_' . round(microtime(true) * 1000) . '_' . $assesData['account_id'] . '.xlsx';
-                $xlsx = SimpleXLSXGen::fromArray( $books );
-                $xlsx->saveAs($fname);
-                $acc = Account::find($assesData['account_id']);
-                $user = User::find($acc['owner_id']);
-                $user->notify(new NewAssessment($fname));
-            }
-        }
-        return response()->json(['status' => 'Success'], 201);
-    }
-
     public function getAssessments($attr)
     {
         $assessments = Assessment::where('line_id', $attr)->orderBy('created_at', 'DESC')->get();

@@ -12,24 +12,29 @@ trait CheckDatesHarvestsTrait
         $closures = HarvestGroup::where('line_id', $line_id)->where(function ($query) use ($start, $end) {
 
             $query->where(function ($q) use ($start, $end) {
-                $q->where('planned_date', '>=', $start)
-                    ->where('planned_date', '<', $end);
-
-            })->orWhere(function ($q) use ($start, $end) {
-                $q->where('planned_date', '<=', $start)
-                    ->where('planned_date_harvest', '>', $end);
-
-            })->orWhere(function ($q) use ($start, $end) {
-                $q->where('planned_date_harvest', '>', $start)
-                    ->where('planned_date_harvest', '<=', $end);
-
-            })->orWhere(function ($q) use ($start, $end) {
-                $q->where('planned_date', '>=', $start)
-                    ->where('planned_date_harvest', '<=', $end);
+                $q->where('harvest_complete_date', 0);
             });
+
+            // $query->where(function ($q) use ($start, $end) {
+            //     $q->where('planned_date', '>=', $start)
+            //         ->where('planned_date', '<', $end);
+
+            // })->orWhere(function ($q) use ($start, $end) {
+            //     $q->where('planned_date', '<=', $start)
+            //         ->where('planned_date_harvest', '>', $end);
+
+            // })->orWhere(function ($q) use ($start, $end) {
+            //     $q->where('planned_date_harvest', '>', $start)
+            //         ->where('planned_date_harvest', '<=', $end);
+
+            // })->orWhere(function ($q) use ($start, $end) {
+            //     $q->where('planned_date', '>=', $start)
+            //         ->where('planned_date_harvest', '<=', $end);
+            // });
 
         })->count();
 
+        file_put_contents("1.txt", $closures);
             if($closures == 0) {
                 return true;
             } else {

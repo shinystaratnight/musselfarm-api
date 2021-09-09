@@ -17,7 +17,7 @@ class HarvestRepository implements HarvestRepositoryInterface
 {
     use CheckDatesHarvestsTrait;
 
-    public function startHarvest($attr)
+    public function startHarvest($attr, $return=false)
     {
         if($this->checkStartSeeding($attr['line_id'], $attr['planned_date'], $attr['planned_date_harvest'])) {
 
@@ -87,12 +87,20 @@ class HarvestRepository implements HarvestRepositoryInterface
             // automation task end
             $currentLine->length = $attr['line_length'];
             $currentLine->update();
-            return response()->json(['status' => 'Success'], 200);
+            if ($return) {
+                return 1;
+            } else {
+                return response()->json(['status' => 'Success'], 201);
+            }
 
         } else {
 
-            return response()->json(['status' => 'Error',
-                                     'message' => 'The specified harvest period already exists'], 400);
+            if ($return) {
+                return 1;
+            } else {
+                return response()->json(['status' => 'Error',
+                                     'message' => 'Harvest already exists'], 400);
+            }
 
         }
     }

@@ -130,6 +130,7 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::resource('farms', FarmController::class);
         Route::get('user-farms-all', [FarmController::class, 'allFarmsByUser']);
         Route::get('farms-all', [FarmController::class, 'allFarms']);
+        Route::post('sync-data-from-app', [FarmController::class, 'syncDataFromApp']);
 
         // Add new farm expenses route
         Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);
@@ -179,7 +180,6 @@ Route::group(['middleware' => 'auth:api'], function ()
             // Assessment routes
             Route::group(['prefix' => 'assessment'], function() {
                Route::resource('assessments', AssessmentController::class);
-               Route::post('add-assessments', [AssessmentController::class, 'addAssessmentsFromApp']);
             });
             Route::post('get-prev-assessment', [AssessmentController::class, 'getPrevAssessment']);
         });

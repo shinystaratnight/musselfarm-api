@@ -38,11 +38,6 @@ class AssessmentController extends Controller
         return $this->assessmentRepo->createAssessment($attr);
     }
 
-    public function addAssessmentsFromApp(Request $request)
-    {
-        return $this->assessmentRepo->createAssessmentFromApp($request);
-    }
-
     public function update(UpdateAssessmentRequest $request, Assessment $assessment)
     {
         $assessment->update($request->validated());
