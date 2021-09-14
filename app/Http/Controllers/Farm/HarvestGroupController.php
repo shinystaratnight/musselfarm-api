@@ -111,7 +111,7 @@ class HarvestGroupController extends Controller
         }
         // automation task end
 
-        if($currentYear == $requestHarvestDate) {
+        if ($currentYear == $requestHarvestDate) {
 
             $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
                 ->update([

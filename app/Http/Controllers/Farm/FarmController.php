@@ -123,6 +123,8 @@ class FarmController extends Controller
                     $formData['name'] = $season->id;
                 }
                 $this->harvestRepo->startHarvest($formData, true);
+            } else if ($formData['type'] == 'harvest') {
+                $this->doHarvest($formData);
             }
         }
         if ($emailNotify) {
@@ -167,5 +169,204 @@ class FarmController extends Controller
             }
         }
         return response()->json(['status' => 'Success'], 201);
+    }
+    
+    public function doHarvest($attr) {
+
+        $harvest = HarvestGroup::where('id', $attr['harvest_group_id'])->first();
+        $harvest->planned_date_harvest = $attr['harvest_complete_date'];
+
+        $currentLine = Line::find($harvest->line_id);
+
+        $requestHarvestDate = Carbon::createFromTimestamp($harvest->planned_date_harvest)->year;
+
+        $currentYear = Carbon::now()->year;
+
+        // automation task start
+        $automations = Automation::where([
+            'condition' => 'Harvesting',
+            'action' => 'Completed',
+            'account_id' => $attr['account_id']
+        ])->get();
+
+        foreach($automations as $automation) {   
+            
+            $due_date = Carbon::createFromTimestamp($attr['harvest_complete_date'])->add($automation->time, $automation->unit)->timestamp * 1000;
+
+            $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $harvest->line_id);
+            if ($automation->assigned_to && $access) {
+                $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->assigned_to, 'line', $harvest->line_id);
+            }
+            if ($access) {
+                $task = Task::create([
+                    'account_id' => $attr['account_id'],
+                    'creator_id' => $automation->creator_id,
+                    'farm_id' => $currentLine->farm_id,
+                    'title' => $automation->title,
+                    'content' => $automation->description,
+                    'assigned_to' => $automation->assigned_to ? $automation->assigned_to : 0,
+                    'line_id' => $harvest->line_id,
+                    'due_date' => $due_date,
+                ]);
+            }
+        }
+        // automation task end
+
+        if ($currentYear == $requestHarvestDate) {
+
+            $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
+                ->update([
+                    'harvest_complete_date' => $harvest->planned_date_harvest,
+                    'planned_date_harvest' => $harvest->planned_date_harvest,
+                    'company' => $attr['company'],
+                    'vessel' => $attr['vessel'],
+                    'harvest_number' => $attr['harvest_number'],
+                    'number_of_bags' => $attr['number_of_bags'],
+                    'tag_color' => $attr['tag_color'],
+                    'port_of_unload' => $attr['port_of_unload'],
+                    'crop_owner' => $attr['crop_owner'],
+                    'growing_area' => $attr['growing_area'],
+                    'delivered_to' => $attr['delivered_to'],
+                    'packhouse' => $attr['packhouse'],
+                    'start_time' => $attr['start_time'],
+                    'finish_time' => $attr['finish_time'],
+                    'bags_clean' => $attr['bags_clean'],
+                    'area_open_for_harvest' => $attr['area_open_for_harvest'],
+                    'trucks_booked' => $attr['trucks_booked'],
+                    'more_clean_bags_on_truck' => $attr['more_clean_bags_on_truck'],
+                    'shell_length' => $attr['shell_length'],
+                    'shell_condition' => $attr['shell_condition'],
+                    'mussels' => $attr['mussels'],
+                    'meat_yield' => $attr['meat_yield'],
+                    'blues' => $attr['blues'],
+                    'marine_waste' => $attr['marine_waste'],
+                    'backbone_ok' => $attr['backbone_ok'],
+                    'backbone_replace' => $attr['backbone_replace'],
+                    'lights_ids_in_place' => $attr['lights_ids_in_place'],
+                    'flotation_on_farm' => $attr['flotation_on_farm'],
+                    'number_of_rope_bags' => $attr['number_of_rope_bags'],
+                    'product_left_on_line' => $attr['product_left_on_line'],
+                    'harvestor_name' => $attr['harvestor_name'],
+                    'signature' => $attr['signature'],
+                    'comments' => $attr['comments']
+                ]);
+
+            if ($completedHarvest) {
+
+                $archiveData = HarvestGroup::where('id', $attr['harvest_group_id'])->with('lines')->first();
+
+                $budget = LineBudget::where('line_id', $archiveData->line_id)->first();
+
+                $budget->planned_harvest_tones_actual += $attr['planned_harvest_tones_actual'];
+
+                $budget->budgeted_harvest_income_actual += $attr['budgeted_harvest_income_actual'];
+
+                $budget->save();
+
+                $profitPerMeterCalculation = $attr['budgeted_harvest_income_actual'] / $budget->length_actual;
+
+                $archiveData->profit_per_meter = round($profitPerMeterCalculation, 2);
+
+                $archiveData->save();
+
+                LineArchive::create([
+                    'harvest_group_id' => $attr['harvest_group_id'],
+                    'length' => $archiveData->line_length,
+                    'planned_date_harvest' => $archiveData->planned_date_harvest,
+                    'planned_date_harvest_original' => $archiveData->planned_date_harvest,
+                    'planned_date' => $archiveData->planned_date,
+                    'seed_id' => $archiveData->seed_id,
+                    'condition' => $archiveData->condition,
+                    'profit_per_meter' => $archiveData->profit_per_meter
+                ]);
+            }
+            return response()->json(['status' => 'Success'], 200);
+        } else  {
+
+            $startOfYear = Carbon::parse('first day of January ' . $requestHarvestDate)->timestamp;
+
+            $endOfYear = Carbon::parse('last day of December ' . $requestHarvestDate)->timestamp;
+
+            $budget = LineBudget::where(['line_id' => $harvest->line_id,
+                                         'start_budget' => $startOfYear,
+                                         'end_budget' => $endOfYear])->first();
+
+            if(!$budget) {
+                $budget = LineBudget::create([
+                    'line_id' => $harvest->line_id,
+                    'start_budget' => $startOfYear,
+                    'end_budget' => $endOfYear,
+                    'length_actual' => $currentLine->length,
+                    'length_budget' => $currentLine->length,
+                ]);
+            }
+
+            $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
+                ->update([
+                    'harvest_complete_date' => $harvest->planned_date_harvest,
+                    'planned_date_harvest' => $harvest->planned_date_harvest,
+                    'company' => $attr['company'],
+                    'vessel' => $attr['vessel'],
+                    'harvest_number' => $attr['harvest_number'],
+                    'number_of_bags' => $attr['number_of_bags'],
+                    'tag_color' => $attr['tag_color'],
+                    'port_of_unload' => $attr['port_of_unload'],
+                    'crop_owner' => $attr['crop_owner'],
+                    'growing_area' => $attr['growing_area'],
+                    'delivered_to' => $attr['delivered_to'],
+                    'packhouse' => $attr['packhouse'],
+                    'start_time' => $attr['start_time'],
+                    'finish_time' => $attr['finish_time'],
+                    'bags_clean' => $attr['bags_clean'],
+                    'area_open_for_harvest' => $attr['area_open_for_harvest'],
+                    'trucks_booked' => $attr['trucks_booked'],
+                    'more_clean_bags_on_truck' => $attr['more_clean_bags_on_truck'],
+                    'shell_length' => $attr['shell_length'],
+                    'shell_condition' => $attr['shell_condition'],
+                    'mussels' => $attr['mussels'],
+                    'meat_yield' => $attr['meat_yield'],
+                    'blues' => $attr['blues'],
+                    'marine_waste' => $attr['marine_waste'],
+                    'backbone_ok' => $attr['backbone_ok'],
+                    'backbone_replace' => $attr['backbone_replace'],
+                    'lights_ids_in_place' => $attr['lights_ids_in_place'],
+                    'flotation_on_farm' => $attr['flotation_on_farm'],
+                    'number_of_rope_bags' => $attr['number_of_rope_bags'],
+                    'product_left_on_line' => $attr['product_left_on_line'],
+                    'harvestor_name' => $attr['harvestor_name'],
+                    'signature' => $attr['signature'],
+                    'comments' => $attr['comments']
+                ]);
+
+            if ($completedHarvest) {
+
+                $archiveData = HarvestGroup::where('id', $attr['harvest_group_id'])->with('lines')->first();
+
+                $budget->planned_harvest_tones_actual += $attr['planned_harvest_tones_actual'];
+
+                $budget->budgeted_harvest_income_actual += $attr['budgeted_harvest_income_actual'];
+
+                $budget->save();
+
+                $profitPerMeterCalculation = $attr['budgeted_harvest_income_actual'] / $budget->length_actual;
+
+                $archiveData->profit_per_meter = round($profitPerMeterCalculation, 2);
+
+                $archiveData->save();
+
+                LineArchive::create([
+                    'harvest_group_id' => $attr['harvest_group_id'],
+                    'length' => $archiveData->line_length,
+                    'planned_date_harvest' => $archiveData->planned_date_harvest,
+                    'planned_date_harvest_original' => $archiveData->planned_date_harvest,
+                    'planned_date' => $archiveData->planned_date,
+                    'seed_id' => $archiveData->seed_id,
+                    'condition' => $archiveData->condition,
+                    'profit_per_meter' => $archiveData->profit_per_meter
+                ]);
+            }
+            return response()->json(['status' => 'Success'], 200);
+
+        }
     }
 }
