@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Farm;
 
 use App\Http\Requests\Harvest\UpdateHarvestGroupRequest;
-use App\Models\ChartData;
 use App\Models\Farm;
 use App\Models\HarvestGroup;
 use App\Models\Line;
@@ -123,7 +122,9 @@ class HarvestGroupController extends Controller
 
                 $archiveData = HarvestGroup::where('id', $attr['harvest_group_id'])->with('lines')->first();
 
-                $budget = LineBudget::where('line_id', $archiveData->line_id)->first();
+                $startOfYear = Carbon::parse('first day of January ' . $requestHarvestDate)->timestamp;
+
+                $budget = LineBudget::where('line_id', $archiveData->line_id)->where('start_budget', $startOfYear)->first();
 
                 $budget->planned_harvest_tones_actual += $attr['planned_harvest_tones_actual'];
 

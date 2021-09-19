@@ -43,7 +43,7 @@ class AddFieldsToHarvestGroupsTable extends Migration
             $table->unsignedBigInteger('number_of_rope_bags')->nullable()->default(0);
             $table->string('product_left_on_line')->nullable()->default('');
             $table->string('harvestor_name')->nullable()->default('');
-            $table->string('signature')->nullable()->default('');
+            $table->longText('signature')->nullable()->default('');
             $table->string('comments')->nullable()->default('');
         });
     }
@@ -84,7 +84,7 @@ class AddFieldsToHarvestGroupsTable extends Migration
             $table->dropColumn('flotation_on_farm');
             $table->dropColumn('number_of_rope_bags');
             $table->dropColumn('product_left_on_line');
-            $table->dropColumn('name');
+            $table->dropColumn('harvestor_name');
             $table->dropColumn('signature');
             $table->dropColumn('comments');
         });

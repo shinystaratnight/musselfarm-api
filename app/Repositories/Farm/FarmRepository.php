@@ -102,6 +102,7 @@ class FarmRepository implements FarmRepositoryInterface
                             'line_name' => $line['line_name'],
                             'harvest_id' => $harvest_id,
                             'last_assess' => $latestAss,
+                            'status' => $harvest_id ? 'seeded' : 'empty'
                         ];
                     }, $alines),
                 ];

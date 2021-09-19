@@ -6,8 +6,12 @@ use App\Models\Farm;
 use App\Models\Line;
 use App\Models\HarvestGroup;
 use App\Models\Account;
+use App\Models\Task;
 use App\Models\User;
 use App\Models\Season;
+use App\Models\Automation;
+use App\Models\LineArchive;
+use App\Models\LineBudget;
 use App\Http\Requests\Farm\FarmRequest;
 use App\Http\Requests\Farm\UpdateFarmRequest;
 use App\Http\Resources\Farm\FarmResource;
@@ -99,7 +103,7 @@ class FarmController extends Controller
         $res = array();
         foreach ($data as $formData) {
             if ($formData['type'] == 'assessment') {
-                if (intval($formData['harvest_group_id']) == -1) {
+                if (intval($formData['harvest_group_id']) <= 0) {
                     $hv = HarvestGroup::where('line_id', $formData['line_id'])->where('harvest_complete_date', 0)->first();
                     if ($hv) {
                         $formData['harvest_group_id'] = $hv->id;
@@ -173,8 +177,13 @@ class FarmController extends Controller
     
     public function doHarvest($attr) {
 
-        $harvest = HarvestGroup::where('id', $attr['harvest_group_id'])->first();
-        $harvest->planned_date_harvest = $attr['harvest_complete_date'];
+        $harvest = null;
+        if (intval($attr['harvest_group_id']) > 0) {
+            $harvest = HarvestGroup::where('id', $attr['harvest_group_id'])->first();
+        } else {
+            $harvest = HarvestGroup::where('line_id', $attr['line_id'])->where('harvest_complete_date', 0)->first();
+        }
+        $harvest->planned_date_harvest = $attr['date'];
 
         $currentLine = Line::find($harvest->line_id);
 
@@ -191,7 +200,7 @@ class FarmController extends Controller
 
         foreach($automations as $automation) {   
             
-            $due_date = Carbon::createFromTimestamp($attr['harvest_complete_date'])->add($automation->time, $automation->unit)->timestamp * 1000;
+            $due_date = Carbon::createFromTimestamp($attr['date'])->add($automation->time, $automation->unit)->timestamp * 1000;
 
             $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $harvest->line_id);
             if ($automation->assigned_to && $access) {
@@ -214,7 +223,7 @@ class FarmController extends Controller
 
         if ($currentYear == $requestHarvestDate) {
 
-            $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
+            $completedHarvest = HarvestGroup::where(['id' => $harvest->id, 'harvest_complete_date' => 0])
                 ->update([
                     'harvest_complete_date' => $harvest->planned_date_harvest,
                     'planned_date_harvest' => $harvest->planned_date_harvest,
@@ -253,13 +262,15 @@ class FarmController extends Controller
 
             if ($completedHarvest) {
 
-                $archiveData = HarvestGroup::where('id', $attr['harvest_group_id'])->with('lines')->first();
+                $archiveData = HarvestGroup::where('id', $harvest->id)->with('lines')->first();
 
-                $budget = LineBudget::where('line_id', $archiveData->line_id)->first();
+                $startOfYear = Carbon::parse('first day of January ' . $requestHarvestDate)->timestamp;
 
-                $budget->planned_harvest_tones_actual += $attr['planned_harvest_tones_actual'];
+                $budget = LineBudget::where('line_id', $archiveData->line_id)->where('start_budget', $startOfYear)->first();
 
-                $budget->budgeted_harvest_income_actual += $attr['budgeted_harvest_income_actual'];
+                $budget->planned_harvest_tones_actual += floatval($attr['number_of_bags']);
+
+                $budget->budgeted_harvest_income_actual += floatval($attr['budgeted_harvest_income_actual']);
 
                 $budget->save();
 
@@ -270,7 +281,7 @@ class FarmController extends Controller
                 $archiveData->save();
 
                 LineArchive::create([
-                    'harvest_group_id' => $attr['harvest_group_id'],
+                    'harvest_group_id' => $harvest->id,
                     'length' => $archiveData->line_length,
                     'planned_date_harvest' => $archiveData->planned_date_harvest,
                     'planned_date_harvest_original' => $archiveData->planned_date_harvest,
@@ -280,7 +291,6 @@ class FarmController extends Controller
                     'profit_per_meter' => $archiveData->profit_per_meter
                 ]);
             }
-            return response()->json(['status' => 'Success'], 200);
         } else  {
 
             $startOfYear = Carbon::parse('first day of January ' . $requestHarvestDate)->timestamp;
@@ -301,7 +311,7 @@ class FarmController extends Controller
                 ]);
             }
 
-            $completedHarvest = HarvestGroup::where(['id' => $attr['harvest_group_id'], 'harvest_complete_date' => 0])
+            $completedHarvest = HarvestGroup::where(['id' => $harvest->id, 'harvest_complete_date' => 0])
                 ->update([
                     'harvest_complete_date' => $harvest->planned_date_harvest,
                     'planned_date_harvest' => $harvest->planned_date_harvest,
@@ -340,11 +350,11 @@ class FarmController extends Controller
 
             if ($completedHarvest) {
 
-                $archiveData = HarvestGroup::where('id', $attr['harvest_group_id'])->with('lines')->first();
+                $archiveData = HarvestGroup::where('id', $harvest->id)->with('lines')->first();
 
-                $budget->planned_harvest_tones_actual += $attr['planned_harvest_tones_actual'];
+                $budget->planned_harvest_tones_actual += floatval($attr['number_of_bags']);
 
-                $budget->budgeted_harvest_income_actual += $attr['budgeted_harvest_income_actual'];
+                $budget->budgeted_harvest_income_actual += floatval($attr['budgeted_harvest_income_actual']);
 
                 $budget->save();
 
@@ -355,7 +365,7 @@ class FarmController extends Controller
                 $archiveData->save();
 
                 LineArchive::create([
-                    'harvest_group_id' => $attr['harvest_group_id'],
+                    'harvest_group_id' => $harvest->id,
                     'length' => $archiveData->line_length,
                     'planned_date_harvest' => $archiveData->planned_date_harvest,
                     'planned_date_harvest_original' => $archiveData->planned_date_harvest,
@@ -365,8 +375,6 @@ class FarmController extends Controller
                     'profit_per_meter' => $archiveData->profit_per_meter
                 ]);
             }
-            return response()->json(['status' => 'Success'], 200);
-
         }
     }
 }
