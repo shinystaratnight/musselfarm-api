@@ -32,6 +32,7 @@ class GroupForLineResource extends JsonResource
             'density' => $this->density,
             'drop' => $this->drop,
             'spat_size' => $this->spat_size,
+            'signature' => $this->signature,
             'line_length' => $this->line_length,
             'floats' => $this->floats,
             'spacing' => $this->spacing,
@@ -42,4 +43,3 @@ class GroupForLineResource extends JsonResource
         ];
     }
 }
-

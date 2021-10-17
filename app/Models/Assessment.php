@@ -36,4 +36,9 @@ class Assessment extends Model
     {
         return $this->belongsTo(HarvestGroup::class);
     }
+
+    public function photos()
+    {
+        return $this->hasMany(AssessmentPhoto::class);
+    }
 }

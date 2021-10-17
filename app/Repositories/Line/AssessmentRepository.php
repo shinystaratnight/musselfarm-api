@@ -81,7 +81,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             // automation task end
             
             if ($return) {
-                return 1;
+                return $assessment->id;
             } else {
                 return response()->json(['status' => 'Success'], 201);
             }

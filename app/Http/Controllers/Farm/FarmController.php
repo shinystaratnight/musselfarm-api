@@ -8,6 +8,7 @@ use App\Models\HarvestGroup;
 use App\Models\Account;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\AssessmentPhoto;
 use App\Models\Season;
 use App\Models\Automation;
 use App\Models\LineArchive;
@@ -97,25 +98,53 @@ class FarmController extends Controller
 
     public function syncDataFromApp(Request $request)
     {
-        $data = (array)$request->input('data');
+        if($request->hasFile('file'))
+        {
+            $files = $request->file('file');
+            foreach ($files as $file) {
+                $file->move('uploads', $file->getClientOriginalName());
+            }
+        }
+
         $emailNotify = $request->input('email');
+        $data = (array)json_decode($request->input('data'));
         $dataByUsers = array();
         $res = array();
-        foreach ($data as $formData) {
-            if ($formData['type'] == 'assessment') {
+
+        foreach ($data as $frmData) {
+            // $formData = (array)json_decode($frmData)[0];
+            $formData = (array)$frmData; // For mobile
+
+            if ($formData['type'] == 'assessment')
+            {
                 if (intval($formData['harvest_group_id']) <= 0) {
                     $hv = HarvestGroup::where('line_id', $formData['line_id'])->where('harvest_complete_date', 0)->first();
-                    if ($hv) {
+                    if ($hv)
+                    {
                         $formData['harvest_group_id'] = $hv->id;
                     }
                 }
-                $this->assessmentRepo->createAssessment($formData, true);
+                
+                $assessId = $this->assessmentRepo->createAssessment($formData, true);
+                $assessImages = (array)$formData['images'];
+                $assessPhotos = [];
+                foreach($assessImages as $assessImage) {
+                    $assessPhotos[] = array(
+                        'assessment_id' => $assessId,
+                        'photo' => $assessImage
+                    );
+                }
+                if (count($assessPhotos)) {
+                    AssessmentPhoto::insert($assessPhotos);
+                }
                 if (!array_key_exists($formData['account_id'], $dataByUsers)) {
                     $dataByUsers[$formData['account_id']] = array();
                 }
                 $dataByUsers[$formData['account_id']][] = $formData;
+
             } else if ($formData['type'] == 'seeding') {
                 $season = Season::where('account_id', $formData['account_id'])->where('season_name', $formData['name'])->first();
+
                 if ($season) {
                     $formData['name'] = $season->id;
                 } else {
@@ -131,7 +160,7 @@ class FarmController extends Controller
                 $this->doHarvest($formData);
             }
         }
-        if ($emailNotify) {
+        if ($emailNotify == "true") {
             foreach($dataByUsers as $userAssessData) {
                 $res[] = count($userAssessData);
                 $harvest = HarvestGroup::where('id', $userAssessData[0]['harvest_group_id'])->first();

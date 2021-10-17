@@ -27,8 +27,8 @@ class AssessmentForGroupResource extends JsonResource
             'date_assessment' => (int)$this->date_assessment,
             'planned_date_harvest' => (int)$this->planned_date_harvest,
             'comment' => !empty($this->comment) ? $this->comment : '',
-            'created_at' => Carbon::parse($this->created_at)->timestamp
-
+            'created_at' => Carbon::parse($this->created_at)->timestamp,
+            'images' => $this->photos
         ];
     }
 }
