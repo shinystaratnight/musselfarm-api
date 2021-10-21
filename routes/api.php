@@ -171,6 +171,9 @@ Route::group(['middleware' => 'auth:api'], function ()
             // Harvest resource route
             Route::resource('harvests', HarvestGroupController::class);
 
+            // Catch Spat route
+            Route::post('catch-spat', [HarvestGroupController::class, 'doCatchSpat']);
+
             // Harvest complete route
             Route::post('harvest-complete', [HarvestGroupController::class, 'harvestComplete'])->middleware('harvest_complete_log');
 

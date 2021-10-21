@@ -8,6 +8,7 @@ use App\Models\Line;
 use App\Models\User;
 use App\Models\Task;
 use App\Models\Account;
+use App\Models\Season;
 use App\Models\Automation;
 use App\Models\LineBudget;
 use App\Traits\CheckDatesHarvestsTrait;
@@ -93,6 +94,49 @@ class HarvestRepository implements HarvestRepositoryInterface
                 return response()->json(['status' => 'Success'], 201);
             }
 
+        } else {
+
+            if ($return) {
+                return 1;
+            } else {
+                return response()->json(['status' => 'Error',
+                                     'message' => 'Harvest already exists'], 400);
+            }
+
+        }
+    }
+
+    public function startHarvestCatchSpat($attr)
+    {
+        if($this->checkStartSeeding($attr['line_id'], $attr['planned_date'], $attr['planned_date_harvest'])) {
+
+            $season = Season::where('account_id', $attr['account_id'])->where('season_name', 'Catch Spat')->first();
+            $seasonId = 0;
+            if ($season) {
+                $seasonId = $season->id;
+            } else {
+                $season = Season::create([
+                    'account_id' => $attr['account_id'],
+                    'user_id' => auth()->user()->id,
+                    'season_name' => 'Catch Spat',
+                ]);
+                $seasonId = $season->id;
+            }
+
+            $currentLine = Line::find($attr['line_id']);
+
+            HarvestGroup::create([
+                'line_id' => $attr['line_id'],
+                'name' => $seasonId,
+                'line_length' => $currentLine->length,
+                'planned_date_harvest' => $attr['planned_date_harvest'],
+                'planned_date_harvest_original' => $attr['planned_date_harvest'],
+                'planned_date' => $attr['planned_date'],
+                'planned_date_original' => $attr['planned_date'],
+                'catch_spat' => '1'
+            ]);
+
+            return response()->json(['status' => 'Success'], 201);
         } else {
 
             if ($return) {

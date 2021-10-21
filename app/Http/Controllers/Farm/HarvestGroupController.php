@@ -13,6 +13,7 @@ use App\Models\Automation;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Harvest\HarvestCompleteRequest;
 use App\Http\Requests\Harvest\CreateHarvestGroupRequest;
+use App\Http\Requests\Harvest\CreateCatchSpatRequest;
 use App\Models\LineArchive;
 use App\Models\LineBudget;
 use App\Repositories\Harvest\HarvestRepositoryInterface as Harvest;
@@ -38,6 +39,12 @@ class HarvestGroupController extends Controller
         $attr = $request->validated();
 
         return $this->harvestRepo->startHarvest($attr);
+    }
+
+    public function doCatchSpat(CreateCatchSpatRequest $request)
+    {
+        $attr = $request->validated();
+        return $this->harvestRepo->startHarvestCatchSpat($attr);
     }
 
     public function show(HarvestGroup $harvestGroup)

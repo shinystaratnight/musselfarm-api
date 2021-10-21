@@ -61,7 +61,8 @@ class HarvestGroup extends Model
         'product_left_on_line',
         'harvestor_name',
         'signature',
-        'comments'
+        'comments',
+        'catch_spat'
     ];
 
     protected $dates = [
