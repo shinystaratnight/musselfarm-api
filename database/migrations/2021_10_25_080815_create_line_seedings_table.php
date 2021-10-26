@@ -25,6 +25,7 @@ class CreateLineSeedingsTable extends Migration
             $table->unsignedBigInteger('seed_id')->nullable();
             $table->foreign('seed_id')->references('id')->on('farm_utils')->onDelete('cascade');
             $table->string('planned_date')->nullable();
+            $table->string('planned_date_harvest')->nullable();
             $table->unsignedBigInteger('seeded_length')->default(1);
             $table->integer('density')->default(0);
             $table->float('drop')->default(0.00);
@@ -32,6 +33,7 @@ class CreateLineSeedingsTable extends Migration
             $table->integer('spacing')->default(0);
             $table->integer('submersion')->default(0);
             $table->unsignedBigInteger('spat_size')->default(0);
+            $table->integer('condition')->default(0);
             $table->timestamps();
         });
 
@@ -44,6 +46,7 @@ class CreateLineSeedingsTable extends Migration
             $seeding['season_id'] = $harvest->name;
             $seeding['seed_id'] = $harvest->seed_id;
             $seeding['planned_date'] = $harvest->planned_date;
+            $seeding['planned_date_harvest'] = $harvest->planned_date_harvest;
             $seeding['seeded_length'] = $harvest->line_length;
             $seeding['density'] = $harvest->density;
             $seeding['drop'] = $harvest->drop;
@@ -51,6 +54,7 @@ class CreateLineSeedingsTable extends Migration
             $seeding['spacing'] = $harvest->spacing;
             $seeding['submersion'] = $harvest->submersion;
             $seeding['spat_size'] = $harvest->spat_size;
+            $seeding['condition'] = $harvest->condition;
             $seeding['created_at'] = Carbon::now()->format('Y-m-d H:i:s');
             $seeding['updated_at'] = Carbon::now()->format('Y-m-d H:i:s');
             $seedings[] = $seeding;

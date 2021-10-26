@@ -17,6 +17,7 @@ class LineSeeding extends Model
         'season_id',
         'seed_id',
         'planned_date',
+        'planned_date_harvest',
         'seed_length',
         'density',
         'drop',
@@ -24,6 +25,7 @@ class LineSeeding extends Model
         'spacing',
         'submersion',
         'spat_size',
+        'condition'
     ];
 
     protected $dates = [
