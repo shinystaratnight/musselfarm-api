@@ -24,6 +24,8 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\Farm\LineSortingRequest;
 
 class FarmController extends Controller
 {
@@ -404,6 +406,55 @@ class FarmController extends Controller
                     'profit_per_meter' => $archiveData->profit_per_meter
                 ]);
             }
+        }
+    }
+
+    public function farmOrders(LineSortingRequest $request)
+    {
+
+        $userId = auth()->user()->id;
+        $farmId = $request->input("farmId");
+        $columnKey = $request->input("columnKey");
+        $order = $request->input("orders");
+
+        $checks = DB::table("line_sorting")->where([
+            ["user_id", "=", $userId],
+            ["farm_id", "=", $farmId]
+        ])->get();
+
+        if ($checks->count() > 0) {
+            DB::table("line_sorting")->where(
+                ["user_id" => $userId, "farm_id" => $farmId]
+            )->update(["column_name" => $columnKey, "column_order" => $order]);
+        } else {
+            DB::table("line_sorting")->insert([
+                "column_name" => $columnKey,
+                "farm_id" => $farmId,
+                "user_id" => $userId,
+                "column_order" => $order
+            ]);
+        }
+
+        return response(["msg" => "success", "ack" => 1])->status(200);
+
+    }
+
+    public function getOrderFarm(\Illuminate\Http\Request $request)
+    {
+
+        $userId = auth()->user()->id;
+        $farmId = $request->input("farmId");
+
+        $checks = DB::table("line_sorting")->where([
+            ["user_id", "=", $userId],
+            ["farm_id", "=", $farmId]
+        ])->get();
+
+        if($checks->count() > 0){
+            $data = $checks[0];
+            return response()->json(["msg" => "success", "ack" => 1,"data"=>["column_name"=>$data->column_name,"column_order"=>$data->column_order]]);
+        }else {
+            return response()->json(["msg" => "data not found ", "ack" => 0]);
         }
     }
 }
