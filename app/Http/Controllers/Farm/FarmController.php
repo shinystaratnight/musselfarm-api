@@ -409,52 +409,124 @@ class FarmController extends Controller
         }
     }
 
-    public function lineSorting(LineSortingRequest $request)
+   public function lineSorting( LineSortingRequest $request )
     {
 
         $userId = auth()->user()->id;
-        $farmId = $request->input("farmId");
-        $columnKey = $request->input("columnKey");
-        $order = $request->input("orders");
+        $farmId = $request->input( 'farmId' );
+        $columnKey = $request->input( 'columnKey' );
+        $order = $request->input( 'orders' );
 
-        $checks = DB::table("line_sorting")->where([
-            ["user_id", "=", $userId],
-            ["farm_id", "=", $farmId]
-        ])->get();
+        $readJson = '';
+        $finalJson  = [];
 
-        if ($checks->count() > 0) {
-            DB::table("line_sorting")->where(
-                ["user_id" => $userId, "farm_id" => $farmId]
-            )->update(["column_name" => $columnKey, "column_order" => $order]);
+        if ( is_file( 'line_sorting.json' ) ) {
+            $readJson = json_decode( file_get_contents( 'line_sorting.json' ) );
+        }
+
+        $values = [
+            'user_id' => $userId,
+            'farm_id' => $farmId,
+            'column_name'=>$columnKey,
+            'order'=>$order
+        ];
+
+        if ( !empty( $readJson ) ) {
+
+            $available = false;
+
+            foreach ( $readJson as $json ) {
+                if ( $json->user_id == $userId && $json->farm_id == $farmId ) {
+                    $available = true;
+                }
+            }
+
+            if ( $available ) {
+
+                foreach ( $readJson as $json ) {
+
+                    $userIds = $json->user_id;
+                    $farmIds = $json->farm_id;
+                    $columnKeys = $json->column_name;
+                    $orders = $json->order;
+
+                    if ( $json->user_id == $userId && $json->farm_id == $farmId ) {
+                        $userIds = $userId;
+                        $farmIds = $farmId;
+                        $columnKeys = $columnKey;
+                        $orders = $order;
+                    }
+
+                    array_push( $finalJson, [
+                        'user_id' => $userIds,
+                        'farm_id' => $farmIds,
+                        'column_name'=>$columnKeys,
+                        'order'=>$orders
+                    ] );
+                }
+            } else {
+
+                foreach ( $readJson as $json ) {
+
+                    $userIds = $json->user_id;
+                    $farmIds = $json->farm_id;
+                    $columnKeys = $json->column_name;
+                    $orders = $json->order;
+
+                    array_push( $finalJson, [
+                        'user_id' => $userIds,
+                        'farm_id' => $farmIds,
+                        'column_name'=>$columnKeys,
+                        'order'=>$orders
+                    ] );
+                }
+
+                array_push( $finalJson, [
+                    'user_id' => $userId,
+                    'farm_id' => $farmId,
+                    'column_name'=>$columnKey,
+                    'order'=>$order
+                ] );
+            }
+
         } else {
-            DB::table("line_sorting")->insert([
-                "column_name" => $columnKey,
-                "farm_id" => $farmId,
-                "user_id" => $userId,
-                "column_order" => $order
-            ]);
+            array_push( $finalJson, $values );
         }
 
-        return response(["msg" => "success", "ack" => 1])->status(200);
+        $fp = fopen( 'line_sorting.json', 'w' );
+        //opens file in append mode
+        fwrite( $fp, json_encode( $finalJson ) );
+        fclose( $fp );
+
+        return response( ['msg' => 'success', 'ack' => 1] )->status( 200 );
 
     }
 
-    public function getLineSorting(\Illuminate\Http\Request $request)
+    public function getLineSorting( \Illuminate\Http\Request $request )
     {
 
         $userId = auth()->user()->id;
-        $farmId = $request->input("farmId");
+        $farmId = $request->input( 'farmId' );
 
-        $checks = DB::table("line_sorting")->where([
-            ["user_id", "=", $userId],
-            ["farm_id", "=", $farmId]
-        ])->get();
+        $readJson = '';
 
-        if($checks->count() > 0){
-            $data = $checks[0];
-            return response()->json(["msg" => "success", "ack" => 1,"data"=>["column_name"=>$data->column_name,"column_order"=>$data->column_order]]);
-        }else {
-            return response()->json(["msg" => "data not found ", "ack" => 0]);
+        if ( is_file( 'line_sorting.json' ) ) {
+            $readJson = json_decode( file_get_contents( 'line_sorting.json' ) );
         }
+
+        $columnKey  = '';
+        $order = '';
+
+        if ( !empty( $readJson ) ) {
+            foreach ( $readJson as $json ) {
+                if ( $json->user_id == $userId && $json->farm_id == $farmId ) {
+                    $columnKey = $json->column_name;
+                    $order = $json->order;
+                }
+            }
+        }
+
+        return response()->json( ['msg' => 'success', 'ack' => 1, 'data'=>['column_name'=>$columnKey, 'column_order'=>$order]] );
     }
+    
 }
