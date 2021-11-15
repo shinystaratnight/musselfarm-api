@@ -409,7 +409,7 @@ class FarmController extends Controller
         }
     }
 
-    public function farmOrders(LineSortingRequest $request)
+    public function lineSorting(LineSortingRequest $request)
     {
 
         $userId = auth()->user()->id;
@@ -439,7 +439,7 @@ class FarmController extends Controller
 
     }
 
-    public function getOrderFarm(\Illuminate\Http\Request $request)
+    public function getLineSorting(\Illuminate\Http\Request $request)
     {
 
         $userId = auth()->user()->id;
