@@ -43,8 +43,18 @@ class OverviewController extends Controller
         return $this->overRepo->farmsInfo($attr);
     }
 
+    public function getChartDay(Request $request)
+    {
+        return $this->overRepo->chartData('month');
+    }
+
+    public function getChartWeek(Request $request)
+    {
+        return $this->overRepo->chartData('week');
+    }
+
     public function getChart(Request $request)
     {
-        return $this->overRepo->chartData($request->input('account_id'));
+        return $this->overRepo->chartData('year');
     }
 }
