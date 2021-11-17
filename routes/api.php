@@ -132,6 +132,9 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::get('farms-all', [FarmController::class, 'allFarms']);
         Route::post('sync-data-from-app', [FarmController::class, 'syncDataFromApp']);
 
+        Route::post("get-line-sorting",[FarmController::class,'getLineSorting']);
+        Route::post('line-sorting',[FarmController::class,'lineSorting']);
+
         // Add new farm expenses route
         Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);
         Route::post('budgets/update-farm-expenses-part', [LineBudgetController::class, 'updateFarmExpenses']);
