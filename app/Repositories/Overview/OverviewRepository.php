@@ -261,7 +261,7 @@ class OverviewRepository implements OverviewRepositoryInterface
         ], 200);
     }
 
-    public function chartData($type = 'year')
+    public function chartData($type = 'year',$acc_id = 0)
     {
 
 
@@ -289,9 +289,9 @@ class OverviewRepository implements OverviewRepositoryInterface
                 break;
         }
 
-        $assesst = $this->getAssessments($from, $to, $type);
-        $harv = $this->getHarvests($from, $to, $type);
-        $seed = $this->getSeeding($from, $to, $type);
+        $assesst = $this->getAssessments($from, $to, $type,$acc_id);
+        $harv = $this->getHarvests($from, $to, $type,$acc_id);
+        $seed = $this->getSeeding($from, $to, $type,$acc_id);
 
 
         $assessments = ['name' => 'assessments'];
@@ -434,13 +434,12 @@ class OverviewRepository implements OverviewRepositoryInterface
         return $gridArr;
     }
 
-    public function getAssessments($from, $to, $type = 'year')
+    public function getAssessments($from, $to, $type = 'year',$acc_id = 0)
     {
-        $user_id = auth()->user()->id;
 
-        if ($user_id) {
+        if ($acc_id) {
 
-            $farms = Farm::where('user_id', $user_id);
+            $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
@@ -467,13 +466,12 @@ class OverviewRepository implements OverviewRepositoryInterface
         }
     }
 
-    public function getHarvests($from, $to, $type = 'year')
+    public function getHarvests($from, $to, $type = 'year',$acc_id = 0)
     {
-        $user_id = auth()->user()->id;
+  
+        if ($acc_id) {
 
-        if ($user_id) {
-
-            $farms = Farm::where('user_id', $user_id);
+            $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
@@ -498,12 +496,12 @@ class OverviewRepository implements OverviewRepositoryInterface
     }
 
 
-    public function getSeeding($from, $to, $type = 'year')
+    public function getSeeding($from, $to, $type = 'year',$acc_id = 0)
     {
-        $user_id = auth()->user()->id;
-
-        if ($user_id) {
-            $farms = Farm::where('user_id', $user_id);
+    
+        if ($acc_id) {
+            
+            $farms = Farm::where('account_id', $acc_id);
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
             $m = function ($val) {
