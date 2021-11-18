@@ -49,15 +49,7 @@ class OverviewController extends Controller
         $type = $request->input("type");
         $acc_id = $request->input("account_id");
 
-        switch ($type) {
-            case "week":
-                return $this->overRepo->chartData('week',$acc_id);
-                break;
-            case "month":
-                return $this->overRepo->chartData('month',$acc_id);
-                break;
-            default:
-                return $this->overRepo->chartData('year',$acc_id);
-        }
+        //use week month and year type to make it work
+        return $this->overRepo->chartData($type,$acc_id);
     }
 }
