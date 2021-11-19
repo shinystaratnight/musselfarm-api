@@ -141,6 +141,12 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
          //this will take uploads directory from root.
          $dir = 'uploads/';
+
+         if(!is_dir($dir)){
+            //this will make upload directory if not exist
+            Storage::makeDirectory($dir);
+         }
+       
         
          //this will find line_expenses directory inside uploads 
          $destinationPath = $dir.'line_expenses';
@@ -248,6 +254,12 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
        
         //this will take uploads directory from root.
         $dir = 'uploads/';
+
+        if(!is_dir($dir)){
+            //this will make upload directory if not exist
+            Storage::makeDirectory($dir);
+        }
+       
         
         //this will find farm_expenses directory inside uploads 
         $destinationPath = $dir.'farm_expenses';

@@ -102,6 +102,11 @@ class FarmController extends Controller
 
         //this will take uploads directory from root.
         $dir = 'uploads/';
+
+        if(!is_dir($dir)){
+            //this will make upload directory if not exist
+            Storage::makeDirectory($dir);
+        }
        
         //this will find assessment directory inside uploads 
         $uploadingDir = $dir.'assessments/';
