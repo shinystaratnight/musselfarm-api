@@ -17,6 +17,7 @@ use App\Repositories\Xero\InvoiceRepository;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class LineBudgetRepository implements LineBudgetRepositoryInterface {
 
@@ -137,7 +138,16 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
         $file = $attr['file'];
         $farmId = $attr['line_budget_id'];
         $expensetype = $attr['expenseType'];
-        $destinationPath = 'uploads';
+
+         //this will take uploads directory from root.
+         $dir = 'uploads/';
+        
+         //this will find line_expenses directory inside uploads 
+         $destinationPath = $dir.'line_expenses';
+         if(!is_dir($destinationPath)){
+             //this will make line_expenses directory if not exist
+             Storage::makeDirectory($destinationPath);
+         }
 
         $name = Carbon::now()->timestamp;
         $fileName = $name . '.' . $file->getClientOriginalExtension();
@@ -235,7 +245,17 @@ class LineBudgetRepository implements LineBudgetRepositoryInterface {
         $file = $attr['file'];
         $farmId = $attr['farm_id'];
         $expensetype = $attr['expenseType'];
-        $destinationPath = 'uploads';
+       
+        //this will take uploads directory from root.
+        $dir = 'uploads/';
+        
+        //this will find farm_expenses directory inside uploads 
+        $destinationPath = $dir.'farm_expenses';
+        if(!is_dir($destinationPath)){
+            //this will make farm_expenses directory if not exist
+            Storage::makeDirectory($destinationPath);
+        }
+
 
         $name = Carbon::now()->timestamp;
         $fileName = $name . '.' . $file->getClientOriginalExtension();

@@ -24,6 +24,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
+use Illuminate\Support\Facades\Storage;
 
 class FarmController extends Controller
 {
@@ -98,11 +99,24 @@ class FarmController extends Controller
 
     public function syncDataFromApp(Request $request)
     {
+
+        //this will take uploads directory from root.
+        $dir = 'uploads/';
+       
+        //this will find assessment directory inside uploads 
+        $uploadingDir = $dir.'assessments/';
+
+        if(!is_dir($uploadingDir)){
+            //this will make assessments directory if not exist
+            Storage::makeDirectory($uploadingDir);
+        }
+
+
         if($request->hasFile('file'))
         {
             $files = $request->file('file');
             foreach ($files as $file) {
-                $file->move('uploads', $file->getClientOriginalName());
+                $file->move($uploadingDir, $file->getClientOriginalName());
             }
         }
 
