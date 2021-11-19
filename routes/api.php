@@ -64,6 +64,7 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::post('next-harvest', [OverviewController::class, 'nextHarvest']);
         Route::post('farm-budget-info', [OverviewController::class, 'farmBudgetedInfo']);
         Route::post('chart-info', [OverviewController::class, 'getChart']);
+       
     });
 
     Route::group(['prefix' => 'xero-data'], function() {
