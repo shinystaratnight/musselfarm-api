@@ -41,7 +41,7 @@ class FarmController extends Controller
 
     public function index()
     {
-//        return $this->farmRepo->farms(auth()->user()->id);
+        //        return $this->farmRepo->farms(auth()->user()->id);
     }
 
     public function show(Request $request, Farm $farm)
@@ -67,7 +67,7 @@ class FarmController extends Controller
             $farm,
             $request->input('account_id')
         ]);
-        
+
         $farm->update($request->validated());
 
         return response()->json(['message' => 'Update completed'], 200);
@@ -97,31 +97,36 @@ class FarmController extends Controller
         return response()->json(['message' => 'Success'], 200);
     }
 
+    public function createDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return Storage::makeDirectory($dir);
+        }
+    }
+
     public function syncDataFromApp(Request $request)
     {
-
         //this will take uploads directory from root.
+
+        $year = date("Y");
+        $month = date("m");
+
         $dir = 'uploads/';
+        $this->createDirectory($dir);
 
-        if(!is_dir($dir)){
-            //this will make upload directory if not exist
-            Storage::makeDirectory($dir);
-        }
-       
-        //this will find assessment directory inside uploads 
-        $uploadingDir = $dir.'assessments/';
+        $uploadingDir = $dir . 'assessments/';
+        $this->createDirectory($uploadingDir);
 
-        if(!is_dir($uploadingDir)){
-            //this will make assessments directory if not exist
-            Storage::makeDirectory($uploadingDir);
-        }
+        $currentYearDir = $uploadingDir . $year . '/';
+        $this->createDirectory($currentYearDir);
 
+        $currentMonthDir = $currentYearDir . $month . '/';
+        $this->createDirectory($currentMonthDir);
 
-        if($request->hasFile('file'))
-        {
+        if ($request->hasFile('file')) {
             $files = $request->file('file');
             foreach ($files as $file) {
-                $file->move($uploadingDir, $file->getClientOriginalName());
+                $file->move($currentMonthDir, $file->getClientOriginalName());
             }
         }
 
@@ -134,20 +139,18 @@ class FarmController extends Controller
             // $formData = (array)json_decode($frmData)[0];
             $formData = (array)$frmData; // For mobile
 
-            if ($formData['type'] == 'assessment')
-            {
+            if ($formData['type'] == 'assessment') {
                 if (intval($formData['harvest_group_id']) <= 0) {
                     $hv = HarvestGroup::where('line_id', $formData['line_id'])->where('harvest_complete_date', 0)->first();
-                    if ($hv)
-                    {
+                    if ($hv) {
                         $formData['harvest_group_id'] = $hv->id;
                     }
                 }
-                
+
                 $assessId = $this->assessmentRepo->createAssessment($formData, true);
                 $assessImages = (array)$formData['images'];
                 $assessPhotos = [];
-                foreach($assessImages as $assessImage) {
+                foreach ($assessImages as $assessImage) {
                     $assessPhotos[] = array(
                         'assessment_id' => $assessId,
                         'photo' => $assessImage
@@ -160,7 +163,6 @@ class FarmController extends Controller
                     $dataByUsers[$formData['account_id']] = array();
                 }
                 $dataByUsers[$formData['account_id']][] = $formData;
-
             } else if ($formData['type'] == 'seeding') {
                 $season = Season::where('account_id', $formData['account_id'])->where('season_name', $formData['name'])->first();
 
@@ -180,14 +182,15 @@ class FarmController extends Controller
             }
         }
         if ($emailNotify == "true") {
-            foreach($dataByUsers as $userAssessData) {
+            foreach ($dataByUsers as $userAssessData) {
                 $res[] = count($userAssessData);
                 $harvest = HarvestGroup::where('id', $userAssessData[0]['harvest_group_id'])->first();
                 $books = [
-                    ['SiteNo', 'line', 'area', 'Seed', 'mtrs', 'drop', 'dateSeeded', 'Owner1', 'AssessDate', 'ConditionScore'
-                        , 'Colour', 'Min', 'Max', 'Avg', 'Blues', 'Tonnes', 'HarvestDate', 'Comment' ]
+                    [
+                        'SiteNo', 'line', 'area', 'Seed', 'mtrs', 'drop', 'dateSeeded', 'Owner1', 'AssessDate', 'ConditionScore', 'Colour', 'Min', 'Max', 'Avg', 'Blues', 'Tonnes', 'HarvestDate', 'Comment'
+                    ]
                 ];
-                foreach ($userAssessData as $assesData)  {
+                foreach ($userAssessData as $assesData) {
                     $farm = Farm::find($assesData['farm_id']);
                     $line = Line::find($assesData['line_id']);
                     $owner = json_decode($farm['owner']);
@@ -213,7 +216,7 @@ class FarmController extends Controller
                     ];
                 }
                 $fname = 'assess_' . round(microtime(true) * 1000) . '_' . $assesData['account_id'] . '.xlsx';
-                $xlsx = SimpleXLSXGen::fromArray( $books );
+                $xlsx = SimpleXLSXGen::fromArray($books);
                 $xlsx->saveAs($fname);
                 $acc = Account::find($assesData['account_id']);
                 $user = User::find($acc['owner_id']);
@@ -222,8 +225,9 @@ class FarmController extends Controller
         }
         return response()->json(['status' => 'Success'], 201);
     }
-    
-    public function doHarvest($attr) {
+
+    public function doHarvest($attr)
+    {
 
         $harvest = null;
         if (intval($attr['harvest_group_id']) > 0) {
@@ -246,8 +250,8 @@ class FarmController extends Controller
             'account_id' => $attr['account_id']
         ])->get();
 
-        foreach($automations as $automation) {   
-            
+        foreach ($automations as $automation) {
+
             $due_date = Carbon::createFromTimestamp($attr['date'])->add($automation->time, $automation->unit)->timestamp * 1000;
 
             $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $harvest->line_id);
@@ -339,17 +343,19 @@ class FarmController extends Controller
                     'profit_per_meter' => $archiveData->profit_per_meter
                 ]);
             }
-        } else  {
+        } else {
 
             $startOfYear = Carbon::parse('first day of January ' . $requestHarvestDate)->timestamp;
 
             $endOfYear = Carbon::parse('last day of December ' . $requestHarvestDate)->timestamp;
 
-            $budget = LineBudget::where(['line_id' => $harvest->line_id,
-                                         'start_budget' => $startOfYear,
-                                         'end_budget' => $endOfYear])->first();
+            $budget = LineBudget::where([
+                'line_id' => $harvest->line_id,
+                'start_budget' => $startOfYear,
+                'end_budget' => $endOfYear
+            ])->first();
 
-            if(!$budget) {
+            if (!$budget) {
                 $budget = LineBudget::create([
                     'line_id' => $harvest->line_id,
                     'start_budget' => $startOfYear,
