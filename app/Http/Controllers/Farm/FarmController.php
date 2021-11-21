@@ -24,6 +24,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
+use Illuminate\Support\Facades\Storage;
 
 class FarmController extends Controller
 {
@@ -96,13 +97,36 @@ class FarmController extends Controller
         return response()->json(['message' => 'Success'], 200);
     }
 
+    public function createDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return Storage::makeDirectory($dir);
+        }
+    }
+
     public function syncDataFromApp(Request $request)
     {
-        if($request->hasFile('file'))
-        {
+        //this will take uploads directory from root.
+
+        $year = date("Y");
+        $month = date("m");
+
+        $dir = 'uploads/';
+        $this->createDirectory($dir);
+
+        $uploadingDir = $dir . 'assessments/';
+        $this->createDirectory($uploadingDir);
+
+        $currentYearDir = $uploadingDir . $year . '/';
+        $this->createDirectory($currentYearDir);
+
+        $currentMonthDir = $currentYearDir . $month . '/';
+        $this->createDirectory($currentMonthDir);
+
+        if ($request->hasFile('file')) {
             $files = $request->file('file');
             foreach ($files as $file) {
-                $file->move('uploads', $file->getClientOriginalName());
+                $file->move($currentMonthDir, $file->getClientOriginalName());
             }
         }
 
@@ -115,20 +139,18 @@ class FarmController extends Controller
             // $formData = (array)json_decode($frmData)[0];
             $formData = (array)$frmData; // For mobile
 
-            if ($formData['type'] == 'assessment')
-            {
+            if ($formData['type'] == 'assessment') {
                 if (intval($formData['harvest_group_id']) <= 0) {
                     $hv = HarvestGroup::where('line_id', $formData['line_id'])->where('harvest_complete_date', 0)->first();
-                    if ($hv)
-                    {
+                    if ($hv) {
                         $formData['harvest_group_id'] = $hv->id;
                     }
                 }
-                
+
                 $assessId = $this->assessmentRepo->createAssessment($formData, true);
                 $assessImages = (array)$formData['images'];
                 $assessPhotos = [];
-                foreach($assessImages as $assessImage) {
+                foreach ($assessImages as $assessImage) {
                     $assessPhotos[] = array(
                         'assessment_id' => $assessId,
                         'photo' => $assessImage
@@ -141,7 +163,6 @@ class FarmController extends Controller
                     $dataByUsers[$formData['account_id']] = array();
                 }
                 $dataByUsers[$formData['account_id']][] = $formData;
-
             } else if ($formData['type'] == 'seeding') {
                 $season = Season::where('account_id', $formData['account_id'])->where('season_name', $formData['name'])->first();
 
@@ -161,14 +182,15 @@ class FarmController extends Controller
             }
         }
         if ($emailNotify == "true") {
-            foreach($dataByUsers as $userAssessData) {
+            foreach ($dataByUsers as $userAssessData) {
                 $res[] = count($userAssessData);
                 $harvest = HarvestGroup::where('id', $userAssessData[0]['harvest_group_id'])->first();
                 $books = [
-                    ['SiteNo', 'line', 'area', 'Seed', 'mtrs', 'drop', 'dateSeeded', 'Owner1', 'AssessDate', 'ConditionScore'
-                        , 'Colour', 'Min', 'Max', 'Avg', 'Blues', 'Tonnes', 'HarvestDate', 'Comment' ]
+                    [
+                        'SiteNo', 'line', 'area', 'Seed', 'mtrs', 'drop', 'dateSeeded', 'Owner1', 'AssessDate', 'ConditionScore', 'Colour', 'Min', 'Max', 'Avg', 'Blues', 'Tonnes', 'HarvestDate', 'Comment'
+                    ]
                 ];
-                foreach ($userAssessData as $assesData)  {
+                foreach ($userAssessData as $assesData) {
                     $farm = Farm::find($assesData['farm_id']);
                     $line = Line::find($assesData['line_id']);
                     $owner = json_decode($farm['owner']);
@@ -194,7 +216,7 @@ class FarmController extends Controller
                     ];
                 }
                 $fname = 'assess_' . round(microtime(true) * 1000) . '_' . $assesData['account_id'] . '.xlsx';
-                $xlsx = SimpleXLSXGen::fromArray( $books );
+                $xlsx = SimpleXLSXGen::fromArray($books);
                 $xlsx->saveAs($fname);
                 $acc = Account::find($assesData['account_id']);
                 $user = User::find($acc['owner_id']);
