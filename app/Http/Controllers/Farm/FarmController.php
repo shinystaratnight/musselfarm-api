@@ -24,9 +24,9 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Farm\LineSortingRequest;
-use Illuminate\Support\Facades\Storage;
 
 class FarmController extends Controller
  {
@@ -64,14 +64,16 @@ class FarmController extends Controller
     }
 
     public function update( UpdateFarmRequest $request, Farm $farm )
-    {
-           $this->authorize( 'update', [
-               $farm,
-               $request->input( 'account_id' )
-           ] );
-           $farm->update( $request->validated() );
-           return response()->json( ['message' => 'Update completed'], 200 );
-       }
+ {
+        $this->authorize( 'update', [
+            $farm,
+            $request->input( 'account_id' )
+        ] );
+
+        $farm->update( $request->validated() );
+
+        return response()->json( ['message' => 'Update completed'], 200 );
+    }
 
     public function allFarms( Request $request )
  {
