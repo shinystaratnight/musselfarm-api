@@ -71,7 +71,7 @@ class FarmController extends Controller
         ] );
 
         $farm->update( $request->validated() );
-
+    
         return response()->json( ['message' => 'Update completed'], 200 );
     }
 
