@@ -41,7 +41,7 @@ class FarmController extends Controller
 
     public function index()
     {
-        //        return $this->farmRepo->farms(auth()->user()->id);
+//        return $this->farmRepo->farms(auth()->user()->id);
     }
 
     public function show(Request $request, Farm $farm)
@@ -67,7 +67,7 @@ class FarmController extends Controller
             $farm,
             $request->input('account_id')
         ]);
-
+        
         $farm->update($request->validated());
 
         return response()->json(['message' => 'Update completed'], 200);
@@ -225,9 +225,8 @@ class FarmController extends Controller
         }
         return response()->json(['status' => 'Success'], 201);
     }
-
-    public function doHarvest($attr)
-    {
+    
+    public function doHarvest($attr) {
 
         $harvest = null;
         if (intval($attr['harvest_group_id']) > 0) {
@@ -250,8 +249,8 @@ class FarmController extends Controller
             'account_id' => $attr['account_id']
         ])->get();
 
-        foreach ($automations as $automation) {
-
+        foreach($automations as $automation) {   
+            
             $due_date = Carbon::createFromTimestamp($attr['date'])->add($automation->time, $automation->unit)->timestamp * 1000;
 
             $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $harvest->line_id);
@@ -343,19 +342,17 @@ class FarmController extends Controller
                     'profit_per_meter' => $archiveData->profit_per_meter
                 ]);
             }
-        } else {
+        } else  {
 
             $startOfYear = Carbon::parse('first day of January ' . $requestHarvestDate)->timestamp;
 
             $endOfYear = Carbon::parse('last day of December ' . $requestHarvestDate)->timestamp;
 
-            $budget = LineBudget::where([
-                'line_id' => $harvest->line_id,
-                'start_budget' => $startOfYear,
-                'end_budget' => $endOfYear
-            ])->first();
+            $budget = LineBudget::where(['line_id' => $harvest->line_id,
+                                         'start_budget' => $startOfYear,
+                                         'end_budget' => $endOfYear])->first();
 
-            if (!$budget) {
+            if(!$budget) {
                 $budget = LineBudget::create([
                     'line_id' => $harvest->line_id,
                     'start_budget' => $startOfYear,
