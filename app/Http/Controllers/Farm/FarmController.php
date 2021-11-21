@@ -63,13 +63,15 @@ class FarmController extends Controller
         return $this->farmRepo->createFarm( $attr );
     }
 
-    public function update( UpdateFarmRequest $request, Farm $farm )
+  public function update( UpdateFarmRequest $request, Farm $farm )
  {
         $this->authorize( 'update', [
             $farm,
             $request->input( 'account_id' )
         ] );
+
         $farm->update( $request->validated() );
+
         return response()->json( ['message' => 'Update completed'], 200 );
     }
 
