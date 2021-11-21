@@ -10,6 +10,8 @@ class Assessment extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = "line_assessment";
+
     protected $fillable = ['harvest_group_id',
                            'color',
                            'condition_min',
