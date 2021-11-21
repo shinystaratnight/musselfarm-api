@@ -24,9 +24,8 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
-use Illuminate\Support\Facades\DB;
-use App\Http\Requests\Farm\LineSortingRequest;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Farm\LineSortingRequest;
 
 class FarmController extends Controller
 {
