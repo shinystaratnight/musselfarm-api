@@ -27,6 +27,7 @@ use App\Notifications\NewAssessment;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Farm\LineSortingRequest;
 use Illuminate\Support\Facades\Storage;
+
 class FarmController extends Controller
  {
     private $farmRepo;
@@ -62,7 +63,7 @@ class FarmController extends Controller
         return $this->farmRepo->createFarm( $attr );
     }
 
-    public function update( UpdateFarmRequest $request, Farm $farm )
+  public function update( UpdateFarmRequest $request, Farm $farm )
  {
         $this->authorize( 'update', [
             $farm,
@@ -96,7 +97,6 @@ class FarmController extends Controller
         $farm->delete();
 
         return response()->json( ['message' => 'Success'], 200 );
-<<<<<<< photo_structure_is_broken
     }
 
     public function createDirectory($dir)
@@ -129,17 +129,6 @@ class FarmController extends Controller
             $files = $request->file('file');
             foreach ($files as $file) {
                 $file->move($currentMonthDir, $file->getClientOriginalName());
-=======
-    }
-
-    public function syncDataFromApp( Request $request )
- {
-        if ( $request->hasFile( 'file' ) )
- {
-            $files = $request->file( 'file' );
-            foreach ( $files as $file ) {
-                $file->move( 'uploads', $file->getClientOriginalName() );
->>>>>>> seed-harvest-structure
             }
         }
 
