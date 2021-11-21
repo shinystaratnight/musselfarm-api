@@ -70,6 +70,7 @@ class FarmController extends Controller
             $request->input( 'account_id' )
         ] );
 
+
         $farm->update( $request->validated() );
 
         return response()->json( ['message' => 'Update completed'], 200 );
