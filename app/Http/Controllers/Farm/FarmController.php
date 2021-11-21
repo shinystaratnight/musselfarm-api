@@ -27,7 +27,6 @@ use App\Notifications\NewAssessment;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Farm\LineSortingRequest;
 use Illuminate\Support\Facades\Storage;
-
 class FarmController extends Controller
  {
     private $farmRepo;
@@ -63,7 +62,7 @@ class FarmController extends Controller
         return $this->farmRepo->createFarm( $attr );
     }
 
-  public function update( UpdateFarmRequest $request, Farm $farm )
+    public function update( UpdateFarmRequest $request, Farm $farm )
  {
         $this->authorize( 'update', [
             $farm,
