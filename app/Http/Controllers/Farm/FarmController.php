@@ -70,7 +70,6 @@ class FarmController extends Controller
             $request->input( 'account_id' )
         ] );
 
-
         $farm->update( $request->validated() );
 
         return response()->json( ['message' => 'Update completed'], 200 );
@@ -442,5 +441,8 @@ class FarmController extends Controller
     public function getLineSorting( \Illuminate\Http\Request $request){
         return $this->farmRepo->getLineSorting($request);
     }
+
+
+    
 
 }
