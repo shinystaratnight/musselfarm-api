@@ -99,9 +99,17 @@ class FarmController extends Controller
         return response()->json( ['message' => 'Success'], 200 );
     }
 
-    public function syncDataFromApp( Request $request )
- {
-       
+    public function createDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return Storage::makeDirectory($dir);
+        }
+    }
+
+    public function syncDataFromApp(Request $request)
+    {
+        //this will take uploads directory from root.
+
         $year = date("Y");
         $month = date("m");
 
@@ -432,13 +440,6 @@ class FarmController extends Controller
    
     public function getLineSorting( \Illuminate\Http\Request $request){
         return $this->farmRepo->getLineSorting($request);
-    }
-
-    public function createDirectory($dir)
-    {
-        if (!is_dir($dir)) {
-            return Storage::makeDirectory($dir);
-        }
     }
 
 }
