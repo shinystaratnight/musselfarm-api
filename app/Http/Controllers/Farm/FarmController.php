@@ -26,6 +26,7 @@ use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Farm\LineSortingRequest;
+use Illuminate\Support\Facades\Storage;
 
 class FarmController extends Controller
  {
@@ -68,9 +69,7 @@ class FarmController extends Controller
             $farm,
             $request->input( 'account_id' )
         ] );
-
         $farm->update( $request->validated() );
-
         return response()->json( ['message' => 'Update completed'], 200 );
     }
 
@@ -96,15 +95,39 @@ class FarmController extends Controller
         $farm->delete();
 
         return response()->json( ['message' => 'Success'], 200 );
+      
     }
 
-    public function syncDataFromApp( Request $request )
- {
-        if ( $request->hasFile( 'file' ) )
- {
-            $files = $request->file( 'file' );
-            foreach ( $files as $file ) {
-                $file->move( 'uploads', $file->getClientOriginalName() );
+    public function createDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return Storage::makeDirectory($dir);
+        }
+    }
+
+    public function syncDataFromApp(Request $request)
+    {
+        //this will take uploads directory from root.
+
+        $year = date("Y");
+        $month = date("m");
+
+        $dir = 'uploads/';
+        $this->createDirectory($dir);
+
+        $uploadingDir = $dir . 'assessments/';
+        $this->createDirectory($uploadingDir);
+
+        $currentYearDir = $uploadingDir . $year . '/';
+        $this->createDirectory($currentYearDir);
+
+        $currentMonthDir = $currentYearDir . $month . '/';
+        $this->createDirectory($currentMonthDir);
+
+        if ($request->hasFile('file')) {
+            $files = $request->file('file');
+            foreach ($files as $file) {
+                $file->move($currentMonthDir, $file->getClientOriginalName());
             }
         }
 
