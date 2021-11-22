@@ -64,6 +64,7 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::post('next-harvest', [OverviewController::class, 'nextHarvest']);
         Route::post('farm-budget-info', [OverviewController::class, 'farmBudgetedInfo']);
         Route::post('chart-info', [OverviewController::class, 'getChart']);
+       
     });
 
     Route::group(['prefix' => 'xero-data'], function() {
@@ -131,6 +132,9 @@ Route::group(['middleware' => 'auth:api'], function ()
         Route::get('user-farms-all', [FarmController::class, 'allFarmsByUser']);
         Route::get('farms-all', [FarmController::class, 'allFarms']);
         Route::post('sync-data-from-app', [FarmController::class, 'syncDataFromApp']);
+
+        Route::post("get-line-sorting",[FarmController::class,'getLineSorting']);
+        Route::post('line-sorting',[FarmController::class,'lineSorting']);
 
         // Add new farm expenses route
         Route::post('budgets/add-farm-expenses', [LineBudgetController::class, 'addFarmExpenses']);

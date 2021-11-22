@@ -14,5 +14,5 @@ interface OverviewRepositoryInterface
 
     public function farmsInfo($attr);
 
-    public function chartData();
+    public function chartData($type,$acc_id);
 }

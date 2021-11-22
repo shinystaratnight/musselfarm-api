@@ -17,11 +17,40 @@ use Illuminate\Database\Eloquent\Collection;
 
 class OverviewRepository implements OverviewRepositoryInterface
 {
+
+    public $year = null;
+    public $from = null;
+    public $to = null;
+    public $month = null;
+    public $previous15day = null;
+    public $future15day = null;
+    public $previousWeek = null;
+    public $futureWeek = null;
+    public $user_id = null;
+
+    public function __construct()
+    {
+        $this->year = date("Y");
+
+        $this->from = $this->getDate("-6 month");
+        $this->to = $this->getDate("+6 month");
+        $this->previous15day = $this->getDate("-15 days");
+        $this->future15day = $this->getDate("+15 days");
+        $this->previousWeek = $this->getDate("-3 days");
+        $this->futureWeek = $this->getDate("+3 days");
+    }
+
+    public function getDate($numberOfDayMonthString)
+    {
+        $currentDate = date("Y-m-d"); //current date 
+        return strtotime(date("Y-m-d", strtotime($currentDate)) . $numberOfDayMonthString);
+    }
+
     public function plannedSeedingDate($acc_id = 0)
     {
         $nextHarvests = null;
 
-        if($acc_id != null) {
+        if ($acc_id != null) {
 
             $farms = Farm::where('account_id', $acc_id)->with('lines')->get();
 
@@ -33,21 +62,19 @@ class OverviewRepository implements OverviewRepositoryInterface
                 };
             }
 
-            if($lines != null) {
+            if ($lines != null) {
                 $nextHarvests = HarvestGroup::whereIn('line_id', $lines)
-                                            ->where('planned_date', '>', Carbon::now()->timestamp)
-                                            ->orderBy('planned_date', 'DESC')
-                                            ->limit(3)
-                                            ->get();
+                    ->where('planned_date', '>', Carbon::now()->timestamp)
+                    ->orderBy('planned_date', 'DESC')
+                    ->limit(3)
+                    ->get();
 
-                if(!empty($nextHarvests)) {
+                if (!empty($nextHarvests)) {
 
                     return NextSeedingResource::collection($nextHarvests->reverse());
-
                 } else {
 
                     return [];
-
                 }
             }
         }
@@ -55,7 +82,7 @@ class OverviewRepository implements OverviewRepositoryInterface
 
     public function farmReview($acc_id = 0)
     {
-        if($acc_id != null) {
+        if ($acc_id != null) {
 
             $farms = Farm::where('account_id', $acc_id);
 
@@ -68,25 +95,33 @@ class OverviewRepository implements OverviewRepositoryInterface
             $start = Carbon::now()->startOfYear()->timestamp;
 
             $totalTones = LineBudget::whereIn('line_id', $lines->pluck('id'))
-                                    ->where('start_budget', $start)
-                                    ->where('end_budget', 0)
-                                    ->sum('planned_harvest_tones_actual');
+                ->where('start_budget', $start)
+                ->where('end_budget', 0)
+                ->sum('planned_harvest_tones_actual');
 
-            return response()->json([['name' => 'Total area',
-                                      'value' => !empty($farmsArea) ? $farmsArea : 0,
-                                      'unit' => 'h'],
-                                     ['name' => 'Total length of lines',
-                                      'value' => !empty($linesLength) ? $linesLength : 0,
-                                      'unit' => 'm'],
-                                     ['name' => 'Total harvest in current year',
-                                      'value' => !empty($totalTones) ? $totalTones : 0,
-                                      'unit' => 't']], 200);
+            return response()->json([
+                [
+                    'name' => 'Total area',
+                    'value' => !empty($farmsArea) ? $farmsArea : 0,
+                    'unit' => 'h'
+                ],
+                [
+                    'name' => 'Total length of lines',
+                    'value' => !empty($linesLength) ? $linesLength : 0,
+                    'unit' => 'm'
+                ],
+                [
+                    'name' => 'Total harvest in current year',
+                    'value' => !empty($totalTones) ? $totalTones : 0,
+                    'unit' => 't'
+                ]
+            ], 200);
         }
     }
 
     public function accountDetail($acc_id = 0)
     {
-        if($acc_id != null) {
+        if ($acc_id != null) {
 
             $farms = Farm::where('account_id', $acc_id);
 
@@ -97,7 +132,7 @@ class OverviewRepository implements OverviewRepositoryInterface
 
                 $g = HarvestGroup::where('line_id', $v->id)->where('harvest_complete_date', 0)->first();
 
-                if($g == null) {
+                if ($g == null) {
                     $count_empty_lines++;
                 }
             }
@@ -105,31 +140,50 @@ class OverviewRepository implements OverviewRepositoryInterface
             $start = Carbon::now()->startOfYear()->timestamp;
 
             $currentTotalIncome = LineBudget::whereIn('line_id', $lines->pluck('id'))
-                                            ->where('start_budget', $start)
-                                            ->where('end_budget', 0);
+                ->where('start_budget', $start)
+                ->where('end_budget', 0);
 
             $year = Carbon::now()->year;
 
-            return response()->json([['name' => 'Farms', 'value' => $farms->count()],
-                                     ['name' => 'Lines', 'value' => [['label' => $year . ' Lines',
-                                                                      'value' => $lines->count()],
-                                                                     ['label' => $year . ' Empty lines',
-                                                                      'value' => $count_empty_lines]
-                                        ]
-                                     ],
-                                     ['name' => $year . ' Income', 'value' => [['label' => $year . ' Income',
-                                                                                        'value' => $currentTotalIncome->sum('budgeted_harvest_income_actual')],
-                                                                                       ['label' => $year . ' Budgeted income',
-                                                                                        'value' => $currentTotalIncome->sum('budgeted_harvest_income')],
-                                          ]
-                                       ],
-                                     ['name' => $year . ' Harvest tonnes', 'value' => [['label' => $year . ' Harvest tonnes',
-                                                                                        'value' => $currentTotalIncome->sum('planned_harvest_tones_actual')],
-                                                                                       ['label' => $year . ' Budgeted harvest tonnes',
-                                                                                        'value' => $currentTotalIncome->sum('planned_harvest_tones')],
-                                          ]
-                                       ],
-                                    ], 200);
+            return response()->json([
+                ['name' => 'Farms', 'value' => $farms->count()],
+                [
+                    'name' => 'Lines', 'value' => [
+                        [
+                            'label' => $year . ' Lines',
+                            'value' => $lines->count()
+                        ],
+                        [
+                            'label' => $year . ' Empty lines',
+                            'value' => $count_empty_lines
+                        ]
+                    ]
+                ],
+                [
+                    'name' => $year . ' Income', 'value' => [
+                        [
+                            'label' => $year . ' Income',
+                            'value' => $currentTotalIncome->sum('budgeted_harvest_income_actual')
+                        ],
+                        [
+                            'label' => $year . ' Budgeted income',
+                            'value' => $currentTotalIncome->sum('budgeted_harvest_income')
+                        ],
+                    ]
+                ],
+                [
+                    'name' => $year . ' Harvest tonnes', 'value' => [
+                        [
+                            'label' => $year . ' Harvest tonnes',
+                            'value' => $currentTotalIncome->sum('planned_harvest_tones_actual')
+                        ],
+                        [
+                            'label' => $year . ' Budgeted harvest tonnes',
+                            'value' => $currentTotalIncome->sum('planned_harvest_tones')
+                        ],
+                    ]
+                ],
+            ], 200);
         }
     }
 
@@ -137,7 +191,7 @@ class OverviewRepository implements OverviewRepositoryInterface
     {
         $nextHarvests = null;
 
-        if($acc_id != null) {
+        if ($acc_id != null) {
 
             $farms = Farm::where('account_id', $acc_id)->with('lines')->get();
 
@@ -149,21 +203,19 @@ class OverviewRepository implements OverviewRepositoryInterface
                 };
             }
 
-            if($lines != null) {
+            if ($lines != null) {
                 $nextHarvests = HarvestGroup::whereIn('line_id', $lines)
                     ->where('planned_date_harvest', '>', Carbon::now()->timestamp)
                     ->orderBy('planned_date_harvest', 'DESC')
                     ->limit(3)
                     ->get();
 
-                if(!empty($nextHarvests)) {
+                if (!empty($nextHarvests)) {
 
                     return NextHarvestResource::collection($nextHarvests->reverse());
-
                 } else {
 
                     return [];
-
                 }
             }
         }
@@ -182,37 +234,65 @@ class OverviewRepository implements OverviewRepositoryInterface
         $epy = $spy = Carbon::now()->subYear()->endOfYear()->timestamp; // end previous year
 
         $currentYear = LineBudget::whereIn('line_id', $lines->pluck('id'))
-                                ->where('start_budget', $scy)
-                                ->where('end_budget', 0);
+            ->where('start_budget', $scy)
+            ->where('end_budget', 0);
 
         $previousYear = LineBudget::whereIn('line_id', $lines->pluck('id'))
-                                ->where('start_budget', $spy)
-                                ->where('end_budget', $epy);
+            ->where('start_budget', $spy)
+            ->where('end_budget', $epy);
 
         $year = Carbon::now()->year;
 
         return response()->json([
-            ['name' => 'Harvested',
-            'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
-            'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
-                ],
-//                ['name' => 'Seeded',
-//                    'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
-//                    'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
-//                ],
-            ['name' => 'Earned',
+            [
+                'name' => 'Harvested',
+                'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
+                'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
+            ],
+            //                ['name' => 'Seeded',
+            //                    'this_year' => $currentYear->sum('planned_harvest_tones_actual'),
+            //                    'last_year' => $previousYear->sum('planned_harvest_tones_actual'),
+            //                ],
+            [
+                'name' => 'Earned',
                 'this_year' => $currentYear->sum('budgeted_harvest_income_actual'),
                 'last_year' => $previousYear->sum('budgeted_harvest_income_actual'),
             ],
         ], 200);
     }
 
-    public function chartData($acc_id = 0)
+    public function chartData($type = 'year',$acc_id = 0)
     {
-        $grid = $this->createDateGrid();
-        $assesst = $this->getAssessments($acc_id);
-        $harv = $this->getHarvests($acc_id);
-        $seed = $this->getSeeding($acc_id);
+
+
+        $grid = $this->createDateGrid($type);
+
+        $assesst = null;
+        $harv = null;
+        $seed = null;
+
+        $from = null;
+        $to = null;
+
+        switch ($type) {
+            case "week":
+                $from = $this->previousWeek;
+                $to = $this->futureWeek;
+                break;
+            case "month":
+                $from = $this->previous15day;
+                $to = $this->future15day;
+                break;
+            case "year":
+                $from = $this->from;
+                $to = $this->to;
+                break;
+        }
+
+        $assesst = $this->getAssessments($from, $to, $type,$acc_id);
+        $harv = $this->getHarvests($from, $to, $type,$acc_id);
+        $seed = $this->getSeeding($from, $to, $type,$acc_id);
+
 
         $assessments = ['name' => 'assessments'];
         $harvests = ['name' => 'harvest'];
@@ -222,21 +302,24 @@ class OverviewRepository implements OverviewRepositoryInterface
             $assessments['values'][$g]['date'] = $m;
             $assessments['values'][$g]['count'] = 0;
             $assessments['values'][$g]['information'] = null;
+            $assessments['values'][$g]['name'] = $type;
 
             $harvests['values'][$g]['date'] = $m;
             $harvests['values'][$g]['count'] = 0;
             $harvests['values'][$g]['information'] = null;
+            $harvests['values'][$g]['name'] = $type;
 
             $seedings['values'][$g]['date'] = $m;
             $seedings['values'][$g]['count'] = 0;
             $seedings['values'][$g]['information'] = null;
+            $seedings['values'][$g]['name'] = $type;
         }
 
         foreach ($assessments['values'] as $g => $a) {
 
             foreach ($assesst as $k => $assessment) {
 
-                if($k == $a['date']) {
+                if ($k == $a['date']) {
                     $lines = [];
 
                     foreach ($assessment as $line) {
@@ -253,6 +336,7 @@ class OverviewRepository implements OverviewRepositoryInterface
                     $assessments['values'][$g]['date'] = $k;
                     $assessments['values'][$g]['count'] = $assessment->count();
                     $assessments['values'][$g]['information'] = $farms;
+                    $assessments['values'][$g]['name'] = $type;
                 }
             }
         }
@@ -261,7 +345,7 @@ class OverviewRepository implements OverviewRepositoryInterface
 
             foreach ($harv as $k => $harvest) {
 
-                if($k == $a['date']) {
+                if ($k == $a['date']) {
                     $lines = [];
 
                     foreach ($harvest as $ha) {
@@ -278,6 +362,7 @@ class OverviewRepository implements OverviewRepositoryInterface
                     $harvests['values'][$g]['date'] = $k;
                     $harvests['values'][$g]['count'] = $harvest->count();
                     $harvests['values'][$g]['information'] = $farms;
+                    $harvests['values'][$g]['name'] = $type;
                 }
             }
         }
@@ -286,7 +371,7 @@ class OverviewRepository implements OverviewRepositoryInterface
 
             foreach ($seed as $k => $seeding) {
 
-                if($k == $a['date']) {
+                if ($k == $a['date']) {
                     $lines = [];
 
                     foreach ($seeding as $se) {
@@ -303,6 +388,7 @@ class OverviewRepository implements OverviewRepositoryInterface
                     $seedings['values'][$g]['date'] = $k;
                     $seedings['values'][$g]['count'] = $seeding->count();
                     $seedings['values'][$g]['information'] = $farms;
+                    $seedings['values'][$g]['name'] = $type;
                 }
             }
         }
@@ -314,81 +400,124 @@ class OverviewRepository implements OverviewRepositoryInterface
         ], 200);
     }
 
-    public function createDateGrid()
+    public function createDateGrid($type = 'year')
     {
         $gridArr = [];
 
-        $currentYear = Carbon::now()->startOfYear()->format('m');
+        if ($type == 'month') {
 
-        $gridArr[] = intval(Carbon::now()->year . $currentYear);
+            $day15 = $this->previous15day;
 
-        for($i = 1; $i <= 11; $i++) {
+            $gridArr[] = date("Ymd", date($day15));
+            for ($i = 1; $i <= 30; $i++) {
+                $gridArr[$i] = date("Ymd", strtotime(date("Y-m-d", $day15) . "+$i days"));
+            }
+        } else if ($type == 'week') {
 
-            $gridArr[$i] = intval(Carbon::now()->year . Carbon::now()->startOfYear()->addMonth($i)->format('m'));
+            $day3 = $this->previousWeek;
 
+            $gridArr[] = date("Ymd", date($day3));
+            for ($i = 1; $i <= 7; $i++) {
+                $gridArr[$i] = date("Ymd", strtotime(date("Y-m-d", $day3) . "+$i days"));
+            }
+        } else if ($type == 'year') {
+
+            $from = date("Y-m-d", $this->from);
+
+            $gridArr[] = date("Ym", strtotime(date("Y-m", strtotime($from))));
+            for ($i = 1; $i <= 11; $i++) {
+                $gridArr[$i] = date("Ym", strtotime(date("Y-m", strtotime($from)) . "+$i months"));
+            }
         }
+
 
         return $gridArr;
     }
 
-    public function getAssessments($acc_id)
+    public function getAssessments($from, $to, $type = 'year',$acc_id = 0)
     {
-        if($acc_id) {
+
+        if ($acc_id) {
+
             $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
             $harvests = HarvestGroup::whereIn('line_id', $lines->pluck('id'));
 
-            $assessments = Assessment::whereIn('harvest_group_id', $harvests->pluck('id'))->with('group')->get()
-                                     ->groupBy(function($val) {
-                                         return Carbon::now()->year . Carbon::parse($val->created_at)->format('m');
-                                     });
+            $m = function ($val) {
+                return Carbon::now()->year . Carbon::parse($val->created_at)->format('m');
+            };
+
+            if ($type == "week" || $type == "month") {
+                $m = function ($val) {
+                    return Carbon::now()->year . Carbon::parse($val->created_at)->format('m') . Carbon::parse($val->created_at)->format('d');
+                };
+            }
+
+            $assessments = Assessment::whereIn('harvest_group_id', $harvests->pluck('id'))
+                ->whereBetween('planned_date_harvest', [$from, $to])
+                ->with('group')
+                ->get()
+                ->groupBy($m);
+
 
             return $assessments;
         }
     }
 
-    public function getHarvests($acc_id)
+    public function getHarvests($from, $to, $type = 'year',$acc_id = 0)
     {
-        if($acc_id) {
+  
+        if ($acc_id) {
 
             $farms = Farm::where('account_id', $acc_id);
 
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
-            $from = Carbon::now()->startOfYear()->timestamp;
+            $m = function ($val) {
+                return Carbon::now()->year . Carbon::createFromTimestamp($val->planned_date_harvest)->format('m');
+            };
 
-            $to = Carbon::now()->endOfYear()->timestamp;
+            if ($type == "week" || $type == "month") {
+                $m = function ($val) {
+                    return Carbon::now()->year . Carbon::createFromTimestamp($val->planned_date_harvest)->format('m') . Carbon::createFromTimestamp($val->planned_date_harvest)->format('d');
+                };
+            }
+
 
             $harvests = HarvestGroup::whereIn('line_id', $lines->pluck('id'))
-                                    ->whereBetween('planned_date_harvest',[$from, $to])
-                                    ->with('lines')->get()
-                                    ->groupBy(function($val) {
-                                        return Carbon::now()->year . Carbon::createFromTimestamp($val->planned_date_harvest)->format('m');
-                                    });
+                ->whereBetween('planned_date_harvest', [$from, $to])
+                ->with('lines')->get()
+                ->groupBy($m);
 
             return $harvests;
         }
     }
 
-    public function getSeeding($acc_id)
-    {
-        if($acc_id) {
-            $farms = Farm::where('account_id', $acc_id);
 
+    public function getSeeding($from, $to, $type = 'year',$acc_id = 0)
+    {
+    
+        if ($acc_id) {
+            
+            $farms = Farm::where('account_id', $acc_id);
             $lines = Line::whereIn('farm_id', $farms->pluck('id'));
 
-            $from = Carbon::now()->startOfYear()->timestamp;
+            $m = function ($val) {
+                return Carbon::now()->year . Carbon::createFromTimestamp($val->planned_date)->format('m');
+            };
 
-            $to = Carbon::now()->endOfYear()->timestamp;
+            if ($type == "week" || $type == "month") {
+                $m = function ($val) {
+                    return Carbon::now()->year . Carbon::createFromTimestamp($val->planned_date)->format('m') . Carbon::createFromTimestamp($val->planned_date)->format('d');
+                };
+            }
 
             $seedings = HarvestGroup::whereIn('line_id', $lines->pluck('id'))
-                                    ->whereBetween('planned_date',[$from, $to])
-                                    ->with('lines')->get()
-                                    ->groupBy(function($val) {
-                                        return Carbon::now()->year . Carbon::createFromTimestamp($val->planned_date)->format('m');
-                                    });
+                ->whereBetween('planned_date', [$from, $to])
+                ->with('lines')->get()
+                ->groupBy($m);
 
             return $seedings;
         }
