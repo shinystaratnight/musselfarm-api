@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Overview\OverviewFarmInfoRequest;
 use App\Repositories\Overview\OverviewRepositoryInterface as Overview;
+use PDO;
 
 class OverviewController extends Controller
 {
@@ -45,6 +46,10 @@ class OverviewController extends Controller
 
     public function getChart(Request $request)
     {
-        return $this->overRepo->chartData($request->input('account_id'));
+        $type = $request->input("type");
+        $acc_id = $request->input("account_id");
+
+        //use week month and year type to make it work
+        return $this->overRepo->chartData($type,$acc_id);
     }
 }

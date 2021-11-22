@@ -69,9 +69,7 @@ class FarmController extends Controller
             $farm,
             $request->input( 'account_id' )
         ] );
-
         $farm->update( $request->validated() );
-
         return response()->json( ['message' => 'Update completed'], 200 );
     }
 
@@ -97,6 +95,7 @@ class FarmController extends Controller
         $farm->delete();
 
         return response()->json( ['message' => 'Success'], 200 );
+      
     }
 
     public function createDirectory($dir)
