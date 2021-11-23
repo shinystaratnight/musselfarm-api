@@ -40,6 +40,7 @@ class CreateAssessmentRequest extends FormRequest
             'date_assessment' => 'required|nullable|numeric',
             'planned_date_harvest' => 'nullable|numeric',
             'comment' => 'nullable|max:1000',
+            'images' => 'array',
         ];
     }
 
