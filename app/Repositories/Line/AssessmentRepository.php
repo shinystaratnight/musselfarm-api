@@ -23,19 +23,26 @@ class AssessmentRepository implements AssessmentRepositoryInterface
 {
     public function createAssessment($attr, $return=false)
     {
+        $year = date("Y");
+        $month = date("m");
+        $uploadsDir = public_path('uploads/');
+        $path = 'assessments/' . $year . '/' . $month . '/';
+        $dir = $uploadsDir . $path;
+
         $images = $attr['images'];
-        $path = public_path('uploads/');
         $collection = collect([]);
 
         foreach ($images as $image)
         {
             $name = time(). "-" . $image['name'];
             $contents = $image['thumbUrl'];
-            if (!file_exists($path)) {
-                File::makeDirectory($path);
+
+            if (!file_exists($dir)) {
+                File::makeDirectory($dir, 0755, true);
             }
-            Image::make($contents)->save($path.$name);
-            $collection->push($name);
+
+            Image::make($contents)->save($dir . $name);
+            $collection->push($path . $name);
         }
 
         // $average = ($attr['condition_min'] + $attr['condition_max']) / 2;
@@ -98,7 +105,6 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             }
             // automation task end
 
-            $collection = $collection->unique();
             $assessPhotos = [];
             foreach ($collection as $image) {
                 $assessPhotos[] = array(
