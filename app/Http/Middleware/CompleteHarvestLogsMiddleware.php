@@ -26,7 +26,7 @@ class CompleteHarvestLogsMiddleware
             $olb = LineBudget::where('end_budget', 0)
                 ->where('line_id', $oldHarvestGroup->line_id)->first();
         } else {
-            $olb = LineBudget::where('start_budget', '<=', $oldHarvestGroup->planned_date)
+            $olb = LineBudget::where('start_budget', '<=', $oldHarvestGroup->planned_date_harvest)
                 ->where('end_budget', '>=', $oldHarvestGroup->planned_date_harvest)
                 ->where('line_id', $oldHarvestGroup->line_id)->first();
         }
