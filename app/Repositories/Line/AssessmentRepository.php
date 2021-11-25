@@ -3,6 +3,7 @@
 namespace App\Repositories\Line;
 
 use App\Models\Assessment;
+use App\Models\AssessmentPhoto;
 use App\Models\ChartData;
 use App\Models\HarvestGroup;
 use App\Models\Automation;
@@ -15,11 +16,35 @@ use App\Http\Resources\Assessment\AssessmentResource;
 use Carbon\Carbon;
 use SimpleXLSXGen;
 use App\Notifications\NewAssessment;
+use Image;
+use File;
 
 class AssessmentRepository implements AssessmentRepositoryInterface
 {
     public function createAssessment($attr, $return=false)
     {
+        $year = date("Y");
+        $month = date("m");
+        $uploadsDir = public_path('uploads/');
+        $path = 'assessments/' . $year . '/' . $month . '/';
+        $dir = $uploadsDir . $path;
+
+        $images = $attr['images'];
+        $collection = collect([]);
+
+        foreach ($images as $image)
+        {
+            $name = time(). "-" . $image['name'];
+            $contents = $image['thumbUrl'];
+
+            if (!file_exists($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+
+            Image::make($contents)->save($dir . $name);
+            $collection->push($path . $name);
+        }
+
         // $average = ($attr['condition_min'] + $attr['condition_max']) / 2;
         $average = $attr['condition_avg'];
 
@@ -57,7 +82,7 @@ class AssessmentRepository implements AssessmentRepositoryInterface
             ])->get();
 
             foreach($automations as $automation) {
-                
+
                 $due_date = $due_date = Carbon::now()->add($automation->time, $automation->unit)->timestamp * 1000;
 
                 $access = Account::find($attr['account_id'])->getAccUserHasPermission($automation->creator_id, 'line', $harvest->line_id);
@@ -79,7 +104,19 @@ class AssessmentRepository implements AssessmentRepositoryInterface
                 }
             }
             // automation task end
-            
+
+            $assessPhotos = [];
+            foreach ($collection as $image) {
+                $assessPhotos[] = array(
+                    'assessment_id' => $assessment->id,
+                    'photo' => $image
+                );
+            }
+
+            if (count($assessPhotos)) {
+                AssessmentPhoto::insert($assessPhotos);
+            }
+
             if ($return) {
                 return $assessment->id;
             } else {
